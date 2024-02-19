@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const ClassesSchema = new Schema({
+const ResultsSchema = new Schema({
   exam: {},
   student: {},
 });
 
-module.exports = mongoose.model("Classes", ClassesSchema);
+module.exports = mongoose.model("Results", ResultsSchema);

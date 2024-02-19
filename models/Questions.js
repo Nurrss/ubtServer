@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const ClassesSchema = new Schema({
+const QuestionsSchema = new Schema({
   text: {
     type: String,
     required: true,
@@ -20,4 +20,4 @@ const ClassesSchema = new Schema({
   answer: {},
 });
 
-module.exports = mongoose.model("Classes", ClassesSchema);
+module.exports = mongoose.model("Questions", QuestionsSchema);
