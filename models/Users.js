@@ -8,8 +8,9 @@ const UsersSchema = new Schema(
     email: {
       type: String,
       trim: true,
-      required: true,
       unique: true,
+      required: true,
+
       lowercase: true,
       validate: [
         {
@@ -33,11 +34,9 @@ const UsersSchema = new Schema(
     },
     firstName: {
       type: String,
-      required: true,
     },
     lastName: {
       type: String,
-      required: true,
     },
     refreshToken: String,
     role: {

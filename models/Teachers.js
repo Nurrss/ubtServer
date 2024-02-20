@@ -14,7 +14,7 @@ const TeachersSchema = new Schema({
     type: String,
     required: true,
   },
-  class: {},
+  classes: {},
   literal: {},
 });
 
