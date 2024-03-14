@@ -59,7 +59,7 @@ router.route("/:id").put(async (req, res) => {
   }
 });
 
-router.get("/getexam/:examId", getExamController.getExamQuestionsForStudent);
+// router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/submit", getExamController.submitAndCheckAnswers);
 router.get("/result/:studentId", getExamController.getResultByStudentId);
 
