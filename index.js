@@ -6,7 +6,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const usersRoute = require("./routes/users");
-const assignmentsRoute = require("./routes/admins");
+const adminsRoute = require("./routes/admins");
 const authRoute = require("./routes/auth");
 const studentRoute = require("./routes/students");
 const teacherRoute = require("./routes/teachers");
@@ -25,20 +25,20 @@ app.use(express.json());
 app.use(morgan("common"));
 app.use(cookieParser());
 app.use(cors());
-app.use("/register", registerRoute);
-app.use("/auth", authRoute);
+app.use("api/register", registerRoute);
+app.use("api/auth", authRoute);
 app.use(verifyJwt);
 
 // authorized routes
-app.use("/students", studentRoute);
-app.use("/exams", examRoute);
-app.use("/teachers", teacherRoute);
-app.use("/question", questionRoute);
-app.use("/results", resultsRoute);
-app.use("/topics", topicRoute);
-app.use("/logout", logoutRoute);
-app.use("/users", usersRoute);
-app.use("/assignments", assignmentsRoute);
+app.use("api/students", studentRoute);
+app.use("api/exams", examRoute);
+app.use("api/teachers", teacherRoute);
+app.use("api/question", questionRoute);
+app.use("api/results", resultsRoute);
+app.use("api/topics", topicRoute);
+app.use("api/logout", logoutRoute);
+app.use("api/users", usersRoute);
+app.use("api/admins", adminsRoute);
 
 mongoose
   .connect(process.env.DB_URL)
