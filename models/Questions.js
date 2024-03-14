@@ -2,19 +2,15 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const QuestionsSchema = new Schema({
-  text: {
+  question: {
     type: String,
     required: true,
   },
   image: {
     type: String,
-    required: true,
   },
-  option: {
-    type: String,
-    required: true,
-  },
-  point: {},
+  options: [{ type: mongoose.Schema.Types.ObjectId, ref: "Options" }],
+  point: { type: Number },
   status: {},
   type: {},
   answer: {},

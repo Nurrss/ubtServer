@@ -39,8 +39,8 @@ router.route("/:id").get(async (req, res) => {
 // add new results done
 router.post("/add", checkTeacher, async (req, res) => {
   try {
-    const { exam, student } = req.body;
-    const entity = { exam, student };
+    const { exam, student, score } = req.body;
+    const entity = { exam, student, score };
     await results.add({ entity, res });
   } catch (err) {
     errorHandler(err, req, res);
@@ -51,8 +51,8 @@ router.post("/add", checkTeacher, async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { exam, student } = req.body;
-    const fieldsToUpdate = { exam, student };
+    const { exam, student, score } = req.body;
+    const fieldsToUpdate = { exam, student, score };
     await results.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);

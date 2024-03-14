@@ -10,7 +10,6 @@ const UsersSchema = new Schema(
       trim: true,
       unique: true,
       required: true,
-
       lowercase: true,
       validate: [
         {
@@ -32,23 +31,20 @@ const UsersSchema = new Schema(
         },
       ],
     },
-    firstName: {
+    name: {
       type: String,
     },
-    lastName: {
+    surname: {
       type: String,
     },
-    refreshToken: String,
-    role: {
-      type: String,
-      enum: ["admin", "student", "teacher"],
-      required: true,
-    },
+    refreshToken: { type: String },
+    role: { type: String, enum: ["admin", "student", "teacher"] },
+    class: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
+    results: [{ type: mongoose.Schema.Types.ObjectId, ref: "ResultsSchema" }],
   },
   { timestamps: true, get: (time) => time.toDateString() }
 );
 
-// Метод для проверки refresh токена
 UsersSchema.methods.isValidRefreshToken = function (providedRefreshToken) {
   return this.refreshToken === providedRefreshToken;
 };

@@ -4,6 +4,7 @@ const _ = require("lodash");
 const Students = require("../models/Students");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
+const getExamController = require("../controllers/examController");
 
 const student = new ApiOptimizer(Students);
 const modelName = "Students";
@@ -57,5 +58,9 @@ router.route("/:id").put(async (req, res) => {
     errorHandler(err, req, res);
   }
 });
+
+router.get("/getexam/:examId", getExamController.getExamQuestionsForStudent);
+router.post("/submit", getExamController.submitAndCheckAnswers);
+router.get("/result/:studentId", getExamController.getResultByStudentId);
 
 module.exports = router;

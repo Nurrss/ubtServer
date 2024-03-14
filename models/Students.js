@@ -2,21 +2,9 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const StudentsSchema = new Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  surname: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  inn: {},
-  results: {},
-  classes: {},
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
+  class: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
+  results: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
 });
 
 module.exports = mongoose.model("Students", StudentsSchema);

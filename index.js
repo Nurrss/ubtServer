@@ -12,6 +12,10 @@ const studentRoute = require("./routes/students");
 const teacherRoute = require("./routes/teachers");
 const logoutRoute = require("./routes/logout");
 const registerRoute = require("./routes/register");
+const questionRoute = require("./routes/questions");
+const topicRoute = require("./routes/topics");
+const examRoute = require("./routes/exams");
+const resultsRoute = require("./routes/results");
 const { logger, logEvents } = require("./middleware/logger");
 const verifyJwt = require("./middleware/verifyJwt");
 
@@ -27,7 +31,11 @@ app.use(verifyJwt);
 
 // authorized routes
 app.use("/students", studentRoute);
+app.use("/exams", examRoute);
 app.use("/teachers", teacherRoute);
+app.use("/question", questionRoute);
+app.use("/results", resultsRoute);
+app.use("/topics", topicRoute);
 app.use("/logout", logoutRoute);
 app.use("/users", usersRoute);
 app.use("/assignments", assignmentsRoute);
@@ -54,5 +62,6 @@ mongoose.connection.on("error", (err) => {
 
 // it should be in the end
 app.use(function (req, res) {
+  console.log(req);
   return res.status(404).json({ message: "Endpoint not found" });
 });

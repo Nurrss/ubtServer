@@ -4,7 +4,6 @@ const _ = require("lodash");
 const Admins = require("../models/Admins");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const checkTeacher = require("../middleware/checkTeacher");
 
 const admin = new ApiOptimizer(Admins);
 const modelName = "Admins";
@@ -31,17 +30,6 @@ router.route("/:id").delete(async (req, res) => {
 router.route("/:id").get(async (req, res) => {
   try {
     await admin.getById(req, res, modelName);
-  } catch (err) {
-    errorHandler(err, req, res);
-  }
-});
-
-// add new admin done
-router.post("/add", async (req, res) => {
-  try {
-    const { inn, password } = req.body;
-    const entity = { inn, password };
-    await admin.add({ entity, res });
   } catch (err) {
     errorHandler(err, req, res);
   }

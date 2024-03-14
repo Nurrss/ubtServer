@@ -5,6 +5,7 @@ const Exams = require("../models/Exams");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkTeacher");
+const handleExam = require("../controllers/examController");
 
 const exams = new ApiOptimizer(Exams);
 const modelName = "Exams";
@@ -37,7 +38,7 @@ router.route("/:id").get(async (req, res) => {
 });
 
 // add new exams done
-router.post("/add", checkTeacher, async (req, res) => {
+router.post("/add", async (req, res) => {
   try {
     const { sudject, status, finished_at, started_at } = req.body;
     const entity = { sudject, status, finished_at, started_at };
@@ -58,5 +59,9 @@ router.route("/:id").put(async (req, res) => {
     errorHandler(err, req, res);
   }
 });
+
+router.post("/newResult", handleExam.assignExamToStudent);
+
+router.post("/addTopic", handleExam.addTopicsToExam);
 
 module.exports = router;

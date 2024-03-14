@@ -35,17 +35,6 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// add new teacher done
-router.route("/add").post(async (req, res) => {
-  try {
-    const { name, email, password, classes, literal } = req.body;
-    const entity = { name, email, password, classes, literal };
-    await teacher.add({ entity, res });
-  } catch (err) {
-    errorHandler(err, req, res);
-  }
-});
-
 // Update teacher done
 router.route("/:id").put(async (req, res) => {
   try {
