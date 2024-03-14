@@ -25,20 +25,20 @@ app.use(express.json());
 app.use(morgan("common"));
 app.use(cookieParser());
 app.use(cors());
-app.use("api/register", registerRoute);
-app.use("api/auth", authRoute);
+app.use("/register", registerRoute);
+app.use("/auth", authRoute);
 app.use(verifyJwt);
 
 // authorized routes
-app.use("api/students", studentRoute);
-app.use("api/exams", examRoute);
-app.use("api/teachers", teacherRoute);
-app.use("api/question", questionRoute);
-app.use("api/results", resultsRoute);
-app.use("api/topics", topicRoute);
-app.use("api/logout", logoutRoute);
-app.use("api/users", usersRoute);
-app.use("api/admins", adminsRoute);
+app.use("/students", studentRoute);
+app.use("/exams", examRoute);
+app.use("/teachers", teacherRoute);
+app.use("/question", questionRoute);
+app.use("/results", resultsRoute);
+app.use("/topics", topicRoute);
+app.use("/logout", logoutRoute);
+app.use("/users", usersRoute);
+app.use("/admins", adminsRoute);
 
 mongoose
   .connect(process.env.DB_URL)
