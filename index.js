@@ -16,11 +16,28 @@ const questionRoute = require("./routes/questions");
 const topicRoute = require("./routes/topics");
 const examRoute = require("./routes/exams");
 const resultsRoute = require("./routes/results");
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 const { logger, logEvents } = require("./middleware/logger");
 const verifyJwt = require("./middleware/verifyJwt");
 
 const port = process.env.PORT || 8000; // Vercel will provide the PORT variable
 // rest of your code remains the same
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Your API",
+      version: "1.0.0",
+    },
+  },
+  apis: ["routes/*.js"], // Укажите путь к вашим файлам маршрутов
+};
+
+const specs = swaggerJsdoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.use(express.json());
 app.use(morgan("common"));
