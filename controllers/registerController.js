@@ -7,7 +7,7 @@ const Students = require("../models/Students");
 const Admins = require("../models/Admins");
 
 const handleNewUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
   if (!email)
     return res
       .status(400)
@@ -39,6 +39,7 @@ const handleNewUser = async (req, res) => {
     const newUser = new Users({
       email,
       password: hashedPwd,
+      role,
     });
     const user = await newUser.save();
 
