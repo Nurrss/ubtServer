@@ -26,13 +26,7 @@ const handleLogin = async (req, res) => {
     const { email, role, _id } = foundUser;
     // create JWTs
     const accessToken = jwt.sign(
-      {
-        UserInfo: {
-          _id,
-          email,
-          role,
-        },
-      },
+      { email: email },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );
@@ -42,13 +36,19 @@ const handleLogin = async (req, res) => {
       { expiresIn: "365d" }
     );
 
-    // Saving refreshToken with current user
-    foundUser.refreshToken = refreshToken;
     foundUser.accessToken = accessToken;
+    // foundUser.refreshToken = refreshToken;
+
+    console.log(foundUser);
     await foundUser.save();
+    // console.log(foundUser);
     res.setHeader("Set-Cookie", `Bearer=${accessToken}`);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.status(200).send(foundUser);
+    res.status(200).send({
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      foundUser,
+    });
   } else {
     res.status(403).json({
       message: "Incorrect password.",
