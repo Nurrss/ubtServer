@@ -39,7 +39,6 @@ const handleLogin = async (req, res) => {
     foundUser.accessToken = accessToken;
     foundUser.refreshToken = refreshToken;
 
-    console.log(foundUser);
     await foundUser.save();
     // console.log(foundUser);
     res.setHeader("Set-Cookie", `Bearer=${accessToken}`);
