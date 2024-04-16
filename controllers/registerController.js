@@ -7,7 +7,7 @@ const Students = require("../models/Students");
 const Admins = require("../models/Admins");
 
 const handleNewUser = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
   if (!email)
     return res
       .status(400)
@@ -39,31 +39,26 @@ const handleNewUser = async (req, res) => {
     const newUser = new Users({
       email,
       password: hashedPwd,
-      role,
     });
     const user = await newUser.save();
 
     //save users by roles
-    let roleSpecificUser = null;
-    switch (role) {
-      case ROLES.STUDENT:
-        roleSpecificUser = new Students({ user: user._id });
-        break;
-      case ROLES.TEACHER:
-        roleSpecificUser = new Teachers({ user: user._id });
-        break;
-      case ROLES.ADMIN:
-        roleSpecificUser = new Admins({ user: user._id });
-        break;
-      default:
-        return res
-          .status(400)
-          .json({ message: "Role not handled.", success: false });
-    }
-
-    if (roleSpecificUser) {
-      await roleSpecificUser.save();
-    }
+    // let roleSpecificUser = null;
+    // switch (role) {
+    //   case ROLES.STUDENT:
+    //     roleSpecificUser = new Students({ user: user._id });
+    //     break;
+    //   case ROLES.TEACHER:
+    //     roleSpecificUser = new Teachers({ user: user._id });
+    //     break;
+    //   case ROLES.ADMIN:
+    //     roleSpecificUser = new Admins({ user: user._id });
+    //     break;
+    //   default:
+    //     return res
+    //       .status(400)
+    //       .json({ message: "Role not handled.", success: false });
+    // }
 
     res.status(200).json(user);
   } catch (err) {

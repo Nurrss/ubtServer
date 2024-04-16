@@ -21,7 +21,7 @@ const swaggerUi = require("swagger-ui-express");
 const { logger, logEvents } = require("./middleware/logger");
 const verifyJwt = require("./middleware/verifyJwt");
 
-const port = process.env.PORT || 8000; // Vercel will provide the PORT variable
+const port = process.env.PORT || 8080; // Vercel will provide the PORT variable
 // rest of your code remains the same
 
 const options = {
