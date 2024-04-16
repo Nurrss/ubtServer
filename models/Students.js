@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const StudentsSchema = new Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
   class: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
-  results: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
+  results: [{ type: mongoose.Schema.Types.ObjectId, ref: "ResultsSchema" }],
 });
 
 module.exports = mongoose.model("Students", StudentsSchema);

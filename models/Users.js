@@ -38,13 +38,13 @@ const UsersSchema = new Schema(
       type: String,
     },
     refreshToken: { type: String },
+    accessToken: { type: String },
     role: {
       type: String,
       enum: ["admin", "student", "teacher"],
       default: "teacher",
     },
     class: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
-    results: [{ type: mongoose.Schema.Types.ObjectId, ref: "ResultsSchema" }],
   },
   { timestamps: true, get: (time) => time.toDateString() }
 );

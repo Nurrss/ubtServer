@@ -37,18 +37,14 @@ const handleLogin = async (req, res) => {
     );
 
     foundUser.accessToken = accessToken;
-    // foundUser.refreshToken = refreshToken;
+    foundUser.refreshToken = refreshToken;
 
     console.log(foundUser);
     await foundUser.save();
     // console.log(foundUser);
     res.setHeader("Set-Cookie", `Bearer=${accessToken}`);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.status(200).send({
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      foundUser,
-    });
+    res.status(200).send(foundUser);
   } else {
     res.status(403).json({
       message: "Incorrect password.",
