@@ -43,6 +43,9 @@ const handleNewUser = async (req, res) => {
     });
     const user = await newUser.save();
 
+    if (role == "teacher") {
+      roleSpecificUser = new Teachers({ user: user._id });
+    }
     //save users by roles
     // let roleSpecificUser = null;
     // switch (role) {

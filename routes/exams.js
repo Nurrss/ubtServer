@@ -215,12 +215,21 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// add new exams done
 router.post("/add", async (req, res) => {
   try {
-    const { sudject, status, finished_at, started_at } = req.body;
-    const entity = { sudject, status, finished_at, started_at };
-    await exams.add({ entity, res });
+    const { started_at, finished_at } = req.body;
+    const startedAt = new Date(started_at + "Z");
+    const finishedAt = new Date(finished_at + "Z");
+
+    const newExam = new Exams({
+      startedAt,
+      finishedAt,
+      topics: [],
+    });
+
+    await newExam.save();
+
+    res.status(201).send(newExam);
   } catch (err) {
     errorHandler(err, req, res);
   }
