@@ -44,7 +44,6 @@ const UsersSchema = new Schema(
       enum: ["admin", "student", "teacher"],
       default: "teacher",
     },
-    class: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
   },
   { timestamps: true, get: (time) => time.toDateString() }
 );
