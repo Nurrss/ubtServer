@@ -44,7 +44,12 @@ const handleNewUser = async (req, res) => {
     const user = await newUser.save();
 
     if (role == "teacher") {
-      roleSpecificUser = new Teachers({ user: user._id });
+      const roleSpecificUser = new Teachers({ user: user._id });
+      await roleSpecificUser.save();
+    }
+    if (role == "admin") {
+      const roleSpecificUser = new Admins({ user: user._id });
+      await roleSpecificUser.save();
     }
     //save users by roles
     // let roleSpecificUser = null;

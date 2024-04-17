@@ -77,9 +77,9 @@ router.put("/:id", async (req, res) => {
       await updatedTeacher.user.save();
 
       updatedTeacher.subject = subject;
-      updatedTeacher.classes = updatedClassForTeacher
+      updatedTeacher.class = updatedClassForTeacher
         ? updatedClassForTeacher._id
-        : updatedTeacher.classes;
+        : updatedTeacher.class;
       await updatedTeacher.save();
 
       res.status(200).send(updatedTeacher);
