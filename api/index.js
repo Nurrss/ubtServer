@@ -37,7 +37,7 @@ class Entity {
 
       if (!requestedEntity) throw new Error(ENTITY_NOT_FOUND);
 
-      res.status(200).json({ data: requestedEntity });
+      res.status(200).json(requestedEntity);
     } catch (err) {
       return errorHandler(err, req, res);
     }
@@ -56,7 +56,7 @@ class Entity {
         .skip(pageSizeInt * (pageNumberInt - 1))
         .limit(pageSizeInt);
 
-      return res.status(200).json({ data });
+      return res.status(200).json(data);
     } catch (err) {
       errorHandler(err, req, res);
     }
@@ -73,7 +73,7 @@ class Entity {
       const entity = await this.entityModel.findByIdAndUpdate(entityId, {
         $set: fieldsToUpdate,
       });
-      res.status(200).json({ data: entity });
+      res.status(200).json(entity);
     } catch (err) {
       errorHandler(err, req, res);
     }
