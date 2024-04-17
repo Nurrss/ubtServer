@@ -217,7 +217,7 @@ router.route("/:id").get(async (req, res) => {
 
 router.post("/add", async (req, res) => {
   try {
-    const { started_at, finished_at } = req.body;
+    const { started_at, finished_at, examType } = req.body;
     const startedAt = new Date(started_at + "Z");
     const finishedAt = new Date(finished_at + "Z");
 
@@ -225,6 +225,7 @@ router.post("/add", async (req, res) => {
       startedAt,
       finishedAt,
       topics: [],
+      examType,
     });
 
     await newExam.save();
