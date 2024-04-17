@@ -16,7 +16,6 @@ class Entity {
   async add({ entity, res }) {
     try {
       const newEntity = new this.entityModel(entity);
-      console.log(newEntity);
       const createdEntity = await newEntity.save();
       res.status(200).json(createdEntity);
     } catch (err) {
