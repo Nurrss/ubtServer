@@ -45,7 +45,7 @@ app.use(cookieParser());
 app.use(cors());
 app.use("/register", registerRoute);
 app.use("/auth", authRoute);
-app.use(verifyJwt);
+// app.use(verifyJwt);
 
 // authorized routes
 app.use("/students", studentRoute);
