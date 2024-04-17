@@ -1,15 +1,15 @@
+const { ROLES } = require("../enums");
+
 /**
  * @DESC Check Role Middleware
  */
-const checkRole = roles => async (req, res, next) => {
-  const accessToken = req.header('Authorization');
-    if (!accessToken) {
-      return res.status(401).json({ message: 'JWT required.' });
-    }
-    const role = req.user.role
-    !roles.includes(role)
-    ? res.status(403).json('Sorry you do not have access to this route')
-    : next();
+const checkRole = (req, res, next) => {
+  console.log(req.user);
+  const role = req.user.role;
+  if (role !== ROLES.ADMIN || role !== ROLES.TEACHER) {
+    return res.status(403).json("Forbidden");
+  }
+  next();
 };
 
 module.exports = checkRole;

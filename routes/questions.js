@@ -5,7 +5,7 @@ const Questions = require("../models/Questions");
 const Options = require("../models/Options");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const checkTeacher = require("../middleware/checkTeacher");
+const checkTeacher = require("../middleware/checkRole");
 const handleQuesion = require("../controllers/questionController");
 
 const questions = new ApiOptimizer(Questions);

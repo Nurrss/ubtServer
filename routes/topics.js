@@ -4,7 +4,7 @@ const _ = require("lodash");
 const Topics = require("../models/Topics");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const checkTeacher = require("../middleware/checkTeacher");
+const checkTeacher = require("../middleware/checkRole");
 
 const topics = new ApiOptimizer(Topics);
 const modelName = "Topics";

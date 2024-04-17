@@ -104,7 +104,7 @@ const modelName = "User";
  *   - bearerAuth: []
  */
 
-router.route("/").get(checkRole([ROLES.ADMIN]), async (req, res) => {
+router.route("/").get(async (req, res) => {
   try {
     await user.getAll(req, res);
   } catch (err) {
@@ -128,7 +128,7 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-router.put("/:id", checkRole([ROLES.ADMIN]), async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
     const { role } = req.body;

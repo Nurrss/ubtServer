@@ -4,7 +4,7 @@ const _ = require("lodash");
 const Exams = require("../models/Exams");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const checkTeacher = require("../middleware/checkTeacher");
+const checkTeacher = require("../middleware/checkRole");
 const handleExam = require("../controllers/examController");
 
 const exams = new ApiOptimizer(Exams);
