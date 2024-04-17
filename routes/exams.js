@@ -241,7 +241,11 @@ router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
     const { started_at, finished_at, examType } = req.body;
-    const fieldsToUpdate = { started_at, finished_at, examType };
+    const fieldsToUpdate = {
+      startedAt: new Date(started_at + "Z"), // Ensure dates are handled correctly
+      finishedAt: new Date(finished_at + "Z"),
+      examType,
+    };
     await exams.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
