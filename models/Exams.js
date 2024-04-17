@@ -6,8 +6,8 @@ const ExamsSchema = new Schema({
   status: { type: String, enum: ["active", "inactive"], default: "active" },
   startedAt: { type: Date },
   finishedAt: { type: Date },
-  examType: { type: String, enum: ["last", "random"] },
-  amountOfPassed: { type: Number },
+  examType: { type: String, enum: ["last", "random"], default: "random" },
+  amountOfPassed: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("Exams", ExamsSchema);
