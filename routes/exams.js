@@ -240,8 +240,8 @@ router.post("/add", async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { sudject, status, finished_at, started_at } = req.body;
-    const fieldsToUpdate = { sudject, status, finished_at, started_at };
+    const { started_at, finished_at, examType } = req.body;
+    const fieldsToUpdate = { started_at, finished_at, examType };
     await exams.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
