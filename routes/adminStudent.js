@@ -65,8 +65,22 @@ router.put("/:id", async (req, res) => {
     const { name, surname, inn, email, literal, classNum } = req.body;
     const studentId = req.params.id;
 
-    // Optionally find and update the class if classNum and literal are provided.
+    // Find the student document first
+    const student = await Students.findById(studentId).populate("user");
+
+    if (!student) {
+      return res.status(404).send("Student not found.");
+    }
+
+    // Now update the user details
+    const updatedUser = await Users.findByIdAndUpdate(
+      student.user._id,
+      { name, surname, email, password: inn }, // Ensure the password is hashed
+      { new: true }
+    );
+
     let classForStudent;
+    // If class number and literal are provided, find or create the class
     if (classNum && literal) {
       classForStudent = await Classes.findOneAndUpdate(
         { class: classNum, literal: literal },
@@ -75,27 +89,13 @@ router.put("/:id", async (req, res) => {
       );
     }
 
-    // Update the user associated with the student
-    const updatedUser = await Users.findByIdAndUpdate(
-      studentId,
-      { name, surname, email, password: inn },
-      { new: true }
-    );
-
-    // Update the student's class if a new class was created or found
+    // Update the student's class reference if needed
     if (classForStudent) {
-      await Students.findByIdAndUpdate(
-        studentId,
-        { class: classForStudent._id },
-        { new: true }
-      );
+      student.class = classForStudent._id;
+      await student.save();
     }
 
-    if (!updatedUser) {
-      return res.status(404).send("Student not found.");
-    }
-
-    res.status(200).send(updatedUser);
+    res.status(200).json({ student: student, user: updatedUser });
   } catch (err) {
     errorHandler(err, req, res);
   }
@@ -120,7 +120,6 @@ router.get("/:id", async (req, res) => {
 
 router.route("/").get(async (req, res) => {
   try {
-    console.log("here");
     const students = await Students.find().populate("user").populate("class");
 
     if (!students.length) {
@@ -145,19 +144,33 @@ router.route("/").get(async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    // Extract the student ID from the request parameters
     const studentId = req.params.id;
 
-    // Delete the student
-    const deletedStudent = await Students.findByIdAndRemove(studentId);
-    if (!deletedStudent) {
+    // Find the student and the class they are in
+    const studentToDelete = await Students.findById(studentId).populate(
+      "class"
+    );
+
+    if (!studentToDelete) {
       return res.status(404).send("Student not found.");
     }
 
-    // Optionally, remove the student reference from the class
-    await Classes.findByIdAndUpdate(deletedStudent.class, {
-      $pull: { students: deletedStudent._id },
-    });
+    // If the student is in a class, remove them from that class's students array
+    if (studentToDelete.class) {
+      await Classes.findByIdAndUpdate(
+        studentToDelete.class._id,
+        { $pull: { students: studentId } }, // Correctly pull the studentId from the students array
+        { new: true }
+      );
+    }
+
+    // Delete the student
+    await Students.findByIdAndDelete(studentId);
+
+    // Optionally delete the user associated with the student
+    if (studentToDelete.user) {
+      await Users.findByIdAndDelete(studentToDelete.user._id);
+    }
 
     res.status(200).send({ message: "Student deleted successfully." });
   } catch (err) {

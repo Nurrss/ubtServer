@@ -8,6 +8,7 @@ require("dotenv").config();
 const usersRoute = require("./routes/users");
 const adminsRoute = require("./routes/admins");
 const adminStudentRoute = require("./routes/adminStudent");
+const adminTeacherRoute = require("./routes/adminTeacher");
 const authRoute = require("./routes/auth");
 const studentRoute = require("./routes/students");
 const teacherRoute = require("./routes/teachers");
@@ -59,6 +60,7 @@ app.use("/logout", logoutRoute);
 app.use("/users", usersRoute);
 app.use("/admins", adminsRoute);
 app.use("/adminStudent", adminStudentRoute);
+app.use("/adminTeacher", adminTeacherRoute);
 
 mongoose
   .connect(process.env.DB_URL)
