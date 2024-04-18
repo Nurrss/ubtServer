@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const bcrypt = require("bcrypt");
 const Teachers = require("../models/Teachers");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
@@ -10,15 +11,19 @@ router.post("/", handleNewUser);
 
 router.post("/teacher", async (req, res) => {
   try {
-    const { name, surname, email, literal, classNum, subject, role } = req.body;
+    const { name, surname, email, literal, classNum, subject, role, password } =
+      req.body;
+    const salt = await bcrypt.genSalt();
+    const hash = await bcrypt.hash(password, salt);
 
     const newUser = new Users({
       name,
       surname,
       email,
-      password: `${name + surname}`,
+      password: hash,
       role,
     });
+    console.log(password);
 
     const savedUser = await newUser.save();
 

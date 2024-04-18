@@ -12,6 +12,8 @@ const handleLogin = async (req, res) => {
   }
 
   const foundUser = await Users.findOne({ email: email }).exec();
+  console.log(password);
+  console.log(foundUser);
 
   //Unauthorized
   if (!foundUser) {
