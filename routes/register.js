@@ -1,74 +1,60 @@
 const router = require("express").Router();
+const Teachers = require("../models/Teachers");
+const Users = require("../models/Users");
+const Classes = require("../models/Classes");
+const errorHandler = require("../middleware/errorHandler");
 
 const handleNewUser = require("../controllers/registerController");
 
 router.post("/", handleNewUser);
 
-/**
- * @swagger
- * tags:
- *   - name: Auth
- *     description: User registration and authentication
- *
- * /register:
- *   post:
- *     summary: Register a new user
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *               - role
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 description: The user's email address.
- *               password:
- *                 type: string
- *                 format: password
- *                 description: The user's password.
- *               role:
- *                 type: string
- *                 enum: [STUDENT, TEACHER, ADMIN]
- *                 description: The user's role in the system.
- *           examples:
- *             newUser:
- *               summary: New user registration example
- *               value:
- *                 email: "newuser@example.com"
- *                 password: "securePassword123"
- *                 role: "STUDENT"
- *     responses:
- *       200:
- *         description: User registered successfully.
- *         content:
- *           application/json:
- *             examples:
- *               successfulRegistration:
- *                 value:
- *                   email: "newuser@example.com"
- *                   role: "STUDENT"
- *       400:
- *         description: Error in user registration (e.g., missing data, email already registered).
- *         content:
- *           application/json:
- *             examples:
- *               emailAlreadyRegistered:
- *                 value:
- *                   message: "Email is already registered."
- *                   success: false
- *               missingData:
- *                 value:
- *                   message: "Email and password are required."
- *                   success: false
- *       500:
- *         description: Server error during registration.
- */
+router.post("/teacher", async (req, res) => {
+  try {
+    const { name, surname, email, literal, classNum, subject, role } = req.body;
+
+    const newUser = new Users({
+      name,
+      surname,
+      email,
+      password: `${name + surname}`,
+      role,
+    });
+
+    const savedUser = await newUser.save();
+
+    let classForTeacher;
+
+    let existingClass = await Classes.findOne({
+      class: classNum,
+      literal: literal,
+    });
+
+    if (!existingClass) {
+      const newClass = new Classes({
+        class: classNum,
+        literal,
+        students: [],
+      });
+      existingClass = await newClass.save();
+    }
+
+    classForTeacher = existingClass;
+
+    const newTeacher = new Teachers({
+      user: savedUser._id,
+      class: classForTeacher._id,
+      subject,
+    });
+
+    const savedTeacher = await newTeacher.save();
+
+    classForTeacher.teacher = savedTeacher._id;
+    await classForTeacher.save();
+
+    res.status(201).send(savedTeacher);
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
 
 module.exports = router;
