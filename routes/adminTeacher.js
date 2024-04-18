@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const _ = require("lodash");
+const bcrypt = require("bcrypt");
 
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
@@ -10,11 +11,25 @@ router.post("/add", async (req, res) => {
   try {
     const { name, surname, email, literal, classNum, subject } = req.body;
 
+    const validateEmail = async (email) => {
+      let user = await Users.findOne({ email });
+      return user ? false : true;
+    };
+
+    let emailNotRegistered = await validateEmail(email);
+    if (!emailNotRegistered) {
+      return res.status(400).json({
+        message: `Email is already registered.`,
+        success: false,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(`${name + "123" + surname}`, 10);
     const newUser = new Users({
       name,
       surname,
       email,
-      password: `${name + "123" + surname}`,
+      password: hashedPassword,
       role: "teacher",
     });
 

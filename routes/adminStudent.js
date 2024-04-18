@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const _ = require("lodash");
+const bcrypt = require("bcrypt");
 
 const Users = require("../models/Users");
 const Students = require("../models/Students");
@@ -10,12 +11,27 @@ router.post("/add", async (req, res) => {
   try {
     const { name, surname, inn, email, literal, classNum } = req.body;
 
+    const validateEmail = async (email) => {
+      let user = await Users.findOne({ email });
+      return user ? false : true;
+    };
+
+    let emailNotRegistered = await validateEmail(email);
+    if (!emailNotRegistered) {
+      return res.status(400).json({
+        message: `Email is already registered.`,
+        success: false,
+      });
+    }
+
     // Step 1: Create a new user
+    const hashedPassword = await bcrypt.hash(inn, 10);
+
     const newUser = new Users({
       name,
       surname,
       email,
-      password: inn, // Make sure to hash the password before saving
+      password: hashedPassword,
       role: "student",
     });
 
@@ -23,25 +39,22 @@ router.post("/add", async (req, res) => {
 
     let classForStudent;
 
-    // Step 2: Find the existing class by classNum and literal
     let existingClass = await Classes.findOne({
       class: classNum,
       literal: literal,
     });
 
     if (!existingClass) {
-      // If no existing class, create a new one
       const newClass = new Classes({
         class: classNum,
         literal,
-        students: [], // Initialize the students array
+        students: [],
       });
       existingClass = await newClass.save();
     }
 
     classForStudent = existingClass;
 
-    // Step 3: Create a new student and link it to the user and the class
     const newStudent = new Students({
       user: savedUser._id,
       class: classForStudent._id,
@@ -50,7 +63,6 @@ router.post("/add", async (req, res) => {
 
     const savedStudent = await newStudent.save();
 
-    // Step 4: Add the student to the class' students array
     classForStudent.students.push(savedStudent._id);
     await classForStudent.save();
 
@@ -65,22 +77,19 @@ router.put("/:id", async (req, res) => {
     const { name, surname, inn, email, literal, classNum } = req.body;
     const studentId = req.params.id;
 
-    // Find the student document first
     const student = await Students.findById(studentId).populate("user");
 
     if (!student) {
       return res.status(404).send("Student not found.");
     }
 
-    // Now update the user details
     const updatedUser = await Users.findByIdAndUpdate(
       student.user._id,
-      { name, surname, email, password: inn }, // Ensure the password is hashed
+      { name, surname, email, password: inn },
       { new: true }
     );
 
     let classForStudent;
-    // If class number and literal are provided, find or create the class
     if (classNum && literal) {
       classForStudent = await Classes.findOneAndUpdate(
         { class: classNum, literal: literal },
@@ -89,7 +98,6 @@ router.put("/:id", async (req, res) => {
       );
     }
 
-    // Update the student's class reference if needed
     if (classForStudent) {
       student.class = classForStudent._id;
       await student.save();

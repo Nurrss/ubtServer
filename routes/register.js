@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const Teachers = require("../models/Teachers");
+const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
 const errorHandler = require("../middleware/errorHandler");
@@ -13,8 +14,21 @@ router.post("/teacher", async (req, res) => {
   try {
     const { name, surname, email, literal, classNum, subject, role, password } =
       req.body;
-    const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(password, salt);
+
+    const hash = await bcrypt.hash(password, hashConstance);
+
+    const validateEmail = async (email) => {
+      let user = await Users.findOne({ email });
+      return user ? false : true;
+    };
+
+    let emailNotRegistered = await validateEmail(email);
+    if (!emailNotRegistered) {
+      return res.status(400).json({
+        message: `Email is already registered.`,
+        success: false,
+      });
+    }
 
     const newUser = new Users({
       name,
