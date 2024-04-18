@@ -2,6 +2,9 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const Users = require("../models/Users");
+const Teachers = require("../models/Teachers");
+const Admins = require("../models/Admins");
+const Students = require("../models/Students");
 
 const handleLogin = async (req, res) => {
   const { email, password } = req.body;
@@ -38,6 +41,28 @@ const handleLogin = async (req, res) => {
       { expiresIn: "365d" }
     );
 
+    let secondId;
+    let roleSpecificData;
+    switch (foundUser.role) {
+      case "teacher":
+        roleSpecificData = await Teachers.findOne({
+          user: foundUser._id,
+        }).exec();
+        break;
+      case "admin":
+        roleSpecificData = await Admins.findOne({
+          user: foundUser._id,
+        }).exec();
+        break;
+      case "student":
+        roleSpecificData = await Students.findOne({
+          user: foundUser._id,
+        }).exec();
+        break;
+      // Add cases for other roles if needed
+    }
+    secondId = roleSpecificData ? roleSpecificData._id : null;
+
     foundUser.accessToken = accessToken;
     foundUser.refreshToken = refreshToken;
 
@@ -45,7 +70,10 @@ const handleLogin = async (req, res) => {
     // console.log(foundUser);
     res.setHeader("Set-Cookie", `Bearer=${accessToken}`);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.status(200).send(foundUser);
+    res.status(200).json({
+      ...foundUser.toObject(),
+      secondId: secondId,
+    });
   } else {
     res.status(403).json({
       message: "Incorrect password.",
