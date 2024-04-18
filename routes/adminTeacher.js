@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
-
+const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
 const errorHandler = require("../middleware/errorHandler");
@@ -24,7 +24,10 @@ router.post("/add", async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(`${name + "123" + surname}`, 10);
+    const hashedPassword = await bcrypt.hash(
+      `${name + "123" + surname}`,
+      hashConstance
+    );
     const newUser = new Users({
       name,
       surname,
@@ -164,9 +167,7 @@ router.delete("/:id", async (req, res) => {
     await Teachers.findByIdAndDelete(teacherId);
 
     if (teacherToDelete.user) {
-      await Users.findByIdAndDelete(teacherToDelete.user._id, {
-        session: session,
-      });
+      await Users.findByIdAndDelete(teacherToDelete.user._id, { new: true });
     }
 
     res

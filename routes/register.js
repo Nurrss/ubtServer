@@ -15,6 +15,11 @@ router.post("/teacher", async (req, res) => {
     const { name, surname, email, literal, classNum, subject, role, password } =
       req.body;
 
+    if (role != "teacher")
+      return res
+        .status(400)
+        .json({ message: "Role is not teacher.", success: false });
+
     const hash = await bcrypt.hash(password, hashConstance);
 
     const validateEmail = async (email) => {
@@ -37,7 +42,6 @@ router.post("/teacher", async (req, res) => {
       password: hash,
       role,
     });
-    console.log(password);
 
     const savedUser = await newUser.save();
 
