@@ -14,7 +14,7 @@ const registerStudentsFromUrl = async (req, res) => {
     const fileUrl = req.body.fileUrl;
     const response = await fetch(fileUrl);
     const buffer = await response.buffer();
-    const tempFilePath = path.join(__dirname, "tempfile.xlsx");
+    const tempFilePath = path.join("/tmp", "tempfile.xlsx");
     fs.writeFileSync(tempFilePath, buffer);
 
     // Read and parse the Excel file
