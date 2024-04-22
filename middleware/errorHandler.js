@@ -3,7 +3,7 @@ const { ERRORS } = require('../enums');
 const { INVALID_ID_ERROR, ENTITY_NOT_FOUND, UPDATE_ERROR, EMPTY_ID_ERROR } =
   ERRORS;
 
-function errorHandler(err, req, res) {
+function  errorHandler(err, req, res) {
   // cannot get errorName from err object
   const errorName = err.Error;
   if (errorName === 'CastError') {

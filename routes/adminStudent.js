@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
-
+const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Students = require("../models/Students");
 const Classes = require("../models/Classes");
@@ -25,7 +25,7 @@ router.post("/add", async (req, res) => {
     }
 
     // Step 1: Create a new user
-    const hashedPassword = await bcrypt.hash(inn, 10);
+    const hashedPassword = await bcrypt.hash(inn, hashConstance);
 
     const newUser = new Users({
       name,

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
+const { hashConstance, ROLES } = require("../enums");
 
 const Admins = require("../models/Admins");
 const Users = require("../models/Users");
@@ -109,8 +110,8 @@ router.put("/password/:id", async (req, res) => {
     );
 
     if (isMatch) {
-      const salt = await bcrypt.genSalt();
-      const hash = await bcrypt.hash(newPassword, salt);
+      
+      const hash = await bcrypt.hash(newPassword, hashConstance);
 
       updatedAdmin.user.password = hash;
       await updatedAdmin.user.save();

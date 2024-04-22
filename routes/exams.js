@@ -242,7 +242,7 @@ router.route("/:id").put(async (req, res) => {
     const entityId = _.get(req, "params.id");
     const { started_at, finished_at, examType } = req.body;
     const fieldsToUpdate = {
-      startedAt: new Date(started_at + "Z"), // Ensure dates are handled correctly
+      startedAt: new Date(started_at + "Z"),
       finishedAt: new Date(finished_at + "Z"),
       examType,
     };

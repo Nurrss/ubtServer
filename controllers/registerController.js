@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-
 const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Teachers = require("../models/Teachers");
