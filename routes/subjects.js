@@ -19,8 +19,8 @@ router.route("/").get(async (req, res) => {
 
 router.post("/add", async (req, res) => {
   try {
-    const { title, subject } = req.body;
-    const entity = { title, subject };
+    const { subject } = req.body;
+    const entity = { subject };
     await subjects.add({ entity, res });
   } catch (err) {
     errorHandler(err, req, res);
@@ -46,8 +46,8 @@ router.route("/:id").get(async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { title, subject } = req.body;
-    const fieldsToUpdate = { title, subject };
+    const { subject } = req.body;
+    const fieldsToUpdate = { subject };
     await subjects.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);

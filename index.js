@@ -6,6 +6,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const usersRoute = require("./routes/users");
+const subjectsRoute = require("./routes/subjects");
 const adminsRoute = require("./routes/admins");
 const adminStudentRoute = require("./routes/adminStudent");
 const adminTeacherRoute = require("./routes/adminTeacher");
@@ -59,6 +60,7 @@ app.use("/topics", topicRoute);
 app.use("/logout", logoutRoute);
 app.use("/users", usersRoute);
 app.use("/admins", adminsRoute);
+app.use("/subjects", subjectsRoute);
 app.use("/adminStudent", adminStudentRoute);
 app.use("/adminTeacher", adminTeacherRoute);
 
