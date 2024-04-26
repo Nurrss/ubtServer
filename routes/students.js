@@ -13,7 +13,6 @@ const {
 const student = new ApiOptimizer(Students);
 const modelName = "Students";
 
-// get all done
 router.route("/").get(async (req, res) => {
   try {
     await student.getAll(req, res);
@@ -22,7 +21,6 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-//delete an student by id done
 router.route("/:id").delete(async (req, res) => {
   try {
     await student.deleteById(req, res, modelName);
@@ -31,7 +29,6 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-// get by id done
 router.route("/:id").get(async (req, res) => {
   try {
     await student.getById(req, res, modelName);
@@ -40,7 +37,6 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// add new student
 router.route("/add").post(async (req, res) => {
   try {
     const { name, surname, password, inn, results, classes } = req.body;
@@ -51,7 +47,6 @@ router.route("/add").post(async (req, res) => {
   }
 });
 
-// Update student
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");

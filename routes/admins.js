@@ -29,14 +29,6 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-// router.route("/:id").get(async (req, res) => {
-//   try {
-//     await admin.getById(req, res, modelName);
-//   } catch (err) {
-//     errorHandler(err, req, res);
-//   }
-// });
-
 router.get("/:id", async (req, res) => {
   try {
     const adminId = req.params.id;
@@ -96,7 +88,7 @@ router.put("/profile/:id", async (req, res) => {
 
 router.put("/password/:id", async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body; // Make sure the casing is consistent
+    const { oldPassword, newPassword } = req.body;
     const adminId = req.params.id;
     const updatedAdmin = await Admins.findById(adminId).populate("user");
     if (!updatedAdmin) {

@@ -48,7 +48,6 @@ router.get("/class/:classId", async (req, res) => {
   try {
     const classId = req.params.classId;
 
-    // Find the class by its ID
     const classWithStudents = await Classes.findById(classId).populate({
       path: "students",
       populate: {
@@ -61,7 +60,6 @@ router.get("/class/:classId", async (req, res) => {
       return res.status(404).send("Class not found.");
     }
 
-    // Extract student data from the populated class document
     const students = classWithStudents.students.map((student) => {
       return {
         id: student._id,
