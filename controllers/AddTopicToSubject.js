@@ -1,51 +1,39 @@
-const Questions = require("../models/Questions");
-const Options = require("../models/Options");
+const _ = require("lodash");
+
 const Topics = require("../models/Topics");
-const mongoose = require("mongoose");
+const Subjects = require("../models/Subjects");
+const ApiOptimizer = require("../api");
+const errorHandler = require("../middleware/errorHandler");
+const checkTeacher = require("../middleware/checkRole");
 
-exports.createQuestion = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+const topics = new ApiOptimizer(Topics);
+const modelName = "Topics";
+
+const AddTopicToSubject = async (req, res) => {
   try {
-    const { question, image, options, point, status, type, answer, topicId } =
-      req.body;
+    const { title, subjectId } = req.body;
 
-    const createdOptions = await Promise.all(
-      options.map(async (optionData) => {
-        const option = new Options({ ...optionData });
-        await option.save({ session });
-        return option._id;
-      })
-    );
+    if (!subjectId) {
+      return res.status(400).json({ message: "Subject ID is required" });
+    }
 
-    const newQuestion = new Questions({
-      question,
-      image,
-      options: createdOptions,
-      point,
-      status,
-      type,
-      answer,
-    });
+    const subject = await Subjects.findById(subjectId);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
 
-    await newQuestion.save({ session });
+    const newTopic = new Topics({ title });
+    const savedTopic = await newTopic.save();
 
-    const topic = await Topics.findById(topicId);
-    topic.questions.push(newQuestion._id);
-    await topic.save({ session });
+    subject.topics.push(savedTopic._id);
+    await subject.save();
 
-    await session.commitTransaction();
-    session.endSession();
-    res.status(201).json({
-      message: "Question and options added successfully",
-      data: newQuestion,
-      topic: topic,
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res
-      .status(400)
-      .json({ message: "Error adding question and options", error });
+      .status(201)
+      .json({ message: "Topic added successfully", topic: savedTopic });
+  } catch (err) {
+    errorHandler(err, req, res);
   }
 };
+
+module.exports = { AddTopicToSubject };
