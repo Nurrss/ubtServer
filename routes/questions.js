@@ -6,12 +6,11 @@ const Options = require("../models/Options");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
-const handleQuesion = require("../controllers/questionController");
+const createQuestion = require("../controllers/createQuestion");
 
 const questions = new ApiOptimizer(Questions);
 const modelName = "Questions";
 
-// get all done
 router.route("/").get(async (req, res) => {
   try {
     await questions.getAll(req, res);
@@ -20,9 +19,8 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-router.post("/add", handleQuesion.createQuestion);
+// router.post("/add", createQuestion());
 
-//delete an questions by id done
 router.route("/:id").delete(async (req, res) => {
   try {
     await questions.deleteById(req, res, modelName);
@@ -31,7 +29,6 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-// get by id done
 router.route("/:id").get(async (req, res) => {
   try {
     await questions.getById(req, res, modelName);
@@ -40,7 +37,6 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// Update questions done
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
