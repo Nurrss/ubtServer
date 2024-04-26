@@ -4,18 +4,27 @@ const Teachers = require("../models/Teachers");
 const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
-const errorHandler = require("../middleware/errorHandler");
+const Subjects = require("../models/Subjects");
 
+const errorHandler = require("../middleware/errorHandler");
 const handleNewUser = require("../controllers/registerController");
 
 router.post("/", handleNewUser);
 
 router.post("/teacher", async (req, res) => {
   try {
-    const { name, surname, email, literal, classNum, subject, role, password } =
-      req.body;
+    const {
+      name,
+      surname,
+      email,
+      literal,
+      classNum,
+      subjectName,
+      role,
+      password,
+    } = req.body;
 
-    if (role != "teacher")
+    if (role !== "teacher")
       return res
         .status(400)
         .json({ message: "Role is not teacher.", success: false });
@@ -23,14 +32,13 @@ router.post("/teacher", async (req, res) => {
     const hash = await bcrypt.hash(password, hashConstance);
 
     const validateEmail = async (email) => {
-      let user = await Users.findOne({ email });
-      return user ? false : true;
+      return !(await Users.findOne({ email }));
     };
 
     let emailNotRegistered = await validateEmail(email);
     if (!emailNotRegistered) {
       return res.status(400).json({
-        message: `Email is already registered.`,
+        message: "Email is already registered.",
         success: false,
       });
     }
@@ -45,28 +53,30 @@ router.post("/teacher", async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    let classForTeacher;
-
-    let existingClass = await Classes.findOne({
+    let classForTeacher = await Classes.findOne({
       class: classNum,
       literal: literal,
     });
 
-    if (!existingClass) {
+    if (!classForTeacher) {
       const newClass = new Classes({
         class: classNum,
         literal,
         students: [],
       });
-      existingClass = await newClass.save();
+      classForTeacher = await newClass.save();
     }
 
-    classForTeacher = existingClass;
+    let subject = await Subjects.findOne({ subject: subjectName });
+    if (!subject) {
+      subject = new Subjects({ subject: subjectName });
+      subject = await subject.save();
+    }
 
     const newTeacher = new Teachers({
       user: savedUser._id,
       class: classForTeacher._id,
-      subject,
+      subject: subject._id,
     });
 
     const savedTeacher = await newTeacher.save();
@@ -74,7 +84,7 @@ router.post("/teacher", async (req, res) => {
     classForTeacher.teacher = savedTeacher._id;
     await classForTeacher.save();
 
-    res.status(201).send(savedTeacher);
+    res.status(201).json(savedTeacher);
   } catch (err) {
     errorHandler(err, req, res);
   }
