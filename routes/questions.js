@@ -6,7 +6,7 @@ const Options = require("../models/Options");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
-const createQuestion = require("../controllers/createQuestion");
+const { createQuestionWithOptions } = require("../controllers/createQuestion");
 
 const questions = new ApiOptimizer(Questions);
 const modelName = "Questions";
@@ -19,7 +19,7 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-// router.post("/add", createQuestion());
+router.post("/add", createQuestionWithOptions);
 
 router.route("/:id").delete(async (req, res) => {
   try {

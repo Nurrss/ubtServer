@@ -11,9 +11,16 @@ const QuestionsSchema = new Schema({
   },
   options: [{ type: mongoose.Schema.Types.ObjectId, ref: "Options" }],
   point: { type: Number },
-  status: {},
-  type: {},
-  answer: {},
+  type: {
+    type: String,
+    enum: ["twoPoints", "onePoint"],
+    default: "onePoint",
+  },
+  correctOption: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Options",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Questions", QuestionsSchema);

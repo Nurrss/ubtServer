@@ -3,29 +3,35 @@ const Options = require("../models/Options");
 const Topics = require("../models/Topics");
 const mongoose = require("mongoose");
 
-exports.createQuestion = async (req, res) => {
+const createQuestionWithOptions = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { question, image, options, point, status, type, answer, topicId } =
-      req.body;
+    const { question, image, options, point, type, topicId } = req.body;
 
-    const createdOptions = await Promise.all(
-      options.map(async (optionData) => {
-        const option = new Options({ ...optionData });
-        await option.save({ session });
-        return option._id;
-      })
-    );
+    const createdOptions = [];
+    let correctOptionId = null;
+    for (const optionData of options) {
+      const option = new Options({
+        text: optionData.text,
+        isCorrect: optionData.isCorrect,
+      });
+      await option.save({ session });
+      createdOptions.push(option);
+      if (option.isCorrect) correctOptionId = option._id;
+    }
+
+    if (!correctOptionId) {
+      throw new Error("No correct option provided");
+    }
 
     const newQuestion = new Questions({
       question,
       image,
-      options: createdOptions,
+      options: createdOptions.map((option) => option._id),
       point,
-      status,
       type,
-      answer,
+      correctOption: correctOptionId,
     });
 
     await newQuestion.save({ session });
@@ -36,10 +42,21 @@ exports.createQuestion = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    const responseOptions = createdOptions.map(({ _id, text }) => ({
+      _id,
+      text,
+    }));
     res.status(201).json({
       message: "Question and options added successfully",
-      data: newQuestion,
-      topic: topic,
+      question: {
+        _id: newQuestion._id,
+        question: newQuestion.question,
+        image: newQuestion.image,
+        options: responseOptions,
+        point: newQuestion.point,
+        type: newQuestion.type,
+      },
     });
   } catch (error) {
     await session.abortTransaction();
@@ -49,3 +66,5 @@ exports.createQuestion = async (req, res) => {
       .json({ message: "Error adding question and options", error });
   }
 };
+
+module.exports = { createQuestionWithOptions };
