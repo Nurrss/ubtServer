@@ -24,7 +24,6 @@ router.post("/add", async (req, res) => {
       });
     }
 
-    // Step 1: Create a new user
     const hashedPassword = await bcrypt.hash(inn, hashConstance);
 
     const newUser = new Users({
@@ -134,7 +133,6 @@ router.route("/").get(async (req, res) => {
       return res.status(200).send([]);
     }
 
-    // Transform the students into the desired format
     const studentsList = students.map((student) => ({
       id: student._id,
       name: student.user.name,
@@ -154,7 +152,6 @@ router.delete("/:id", async (req, res) => {
   try {
     const studentId = req.params.id;
 
-    // Find the student and the class they are in
     const studentToDelete = await Students.findById(studentId).populate(
       "class"
     );
@@ -163,19 +160,16 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).send("Student not found.");
     }
 
-    // If the student is in a class, remove them from that class's students array
     if (studentToDelete.class) {
       await Classes.findByIdAndUpdate(
         studentToDelete.class._id,
-        { $pull: { students: studentId } }, // Correctly pull the studentId from the students array
+        { $pull: { students: studentId } },
         { new: true }
       );
     }
 
-    // Delete the student
     await Students.findByIdAndDelete(studentId);
 
-    // Optionally delete the user associated with the student
     if (studentToDelete.user) {
       await Users.findByIdAndDelete(studentToDelete.user._id);
     }

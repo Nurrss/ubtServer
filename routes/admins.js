@@ -15,7 +15,6 @@ const modelName = "Admins";
 
 router.route("/").get(async (req, res) => {
   try {
-    console.log("here1");
     await admin.getAll(req, res);
   } catch (err) {
     errorHandler(err, req, res);
@@ -110,7 +109,6 @@ router.put("/password/:id", async (req, res) => {
     );
 
     if (isMatch) {
-      
       const hash = await bcrypt.hash(newPassword, hashConstance);
 
       updatedAdmin.user.password = hash;
