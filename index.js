@@ -27,20 +27,174 @@ const { checkExamStatus } = require("./middleware/checkExamStatus");
 
 const port = process.env.PORT || 8080;
 
-const options = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Your API",
-      version: "1.0.0",
+const swaggerDocument = {
+  openapi: "3.0.0",
+  info: {
+    title: "Exam Management API",
+    version: "1.0.0",
+    description: "API for managing exams, questions, and results.",
+  },
+  paths: {
+    "/startExam": {
+      post: {
+        tags: ["Exam Operations"],
+        summary: "Start an exam for a student",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/StartExamRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Exam started successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/StartExamResponse",
+                },
+              },
+            },
+          },
+          404: {
+            description: "Exam not found",
+          },
+          400: {
+            description: "Bad request",
+          },
+        },
+      },
+    },
+    "/submitAnswer": {
+      post: {
+        tags: ["Exam Operations"],
+        summary: "Submit an answer for a question during an exam",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/SubmitAnswerRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Answer submitted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/SubmitAnswerResponse",
+                },
+              },
+            },
+          },
+          404: {
+            description: "Question or subject not found",
+          },
+          400: {
+            description: "Error submitting answer",
+          },
+        },
+      },
+    },
+    "/addQuestionWithOptions": {
+      post: {
+        tags: ["Question Operations"],
+        summary: "Create a question with options",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/AddQuestionRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Question and options added successfully",
+          },
+          400: {
+            description: "Error adding question and options",
+          },
+        },
+      },
+    },
+    "/createExamWithAllSubjects": {
+      post: {
+        tags: ["Exam Operations"],
+        summary: "Create an exam with all subjects",
+        requestBody: {
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateExamRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: "Exam with all subjects created successfully",
+          },
+          400: {
+            description: "Error creating exam with all subjects",
+          },
+        },
+      },
     },
   },
-  apis: ["routes/*.js"],
+  components: {
+    schemas: {
+      StartExamRequest: {
+        type: "object",
+        properties: {
+          examId: {
+            type: "string",
+            format: "uuid",
+          },
+          selectedSubjectIds: {
+            type: "array",
+            items: {
+              type: "string",
+              format: "uuid",
+            },
+          },
+          studentId: {
+            type: "string",
+            format: "uuid",
+          },
+        },
+        required: ["examId", "selectedSubjectIds", "studentId"],
+      },
+      // Define other request and response schemas here...
+    },
+  },
 };
 
-const specs = swaggerJsdoc(options);
+// Initialize Swagger JSDoc
+const swaggerSpec = swaggerJsdoc({
+  swaggerDefinition: swaggerDocument,
+  apis: ["routes/*.js"], // Here you can add paths to your route files for Swagger to parse
+});
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+// Serve Swagger docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// const options = {
+//   definition: {
+//     openapi: "3.0.0",
+//     info: {
+//       title: "Your API",
+//       version: "1.0.0",
+//     },
+//   },
+//   apis: ["routes/*.js"],
+// };
 
 app.use(express.json());
 checkExamStatus();

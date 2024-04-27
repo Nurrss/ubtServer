@@ -68,14 +68,11 @@ const submitAnswer = async (req, res) => {
     );
 
     if (answerIndex !== -1) {
-      // Update points if the answer was previously incorrect but is now correct
       if (!subjectResult.results[answerIndex].isCorrect && isCorrect) {
         subjectResult.totalPoints += question.point;
       }
-      // Update the isCorrect value for the question
       subjectResult.results[answerIndex].isCorrect = isCorrect;
     } else {
-      // Add a new answer entry
       subjectResult.results.push({ questionNumber, isCorrect });
       if (isCorrect) {
         subjectResult.totalPoints += question.point;
