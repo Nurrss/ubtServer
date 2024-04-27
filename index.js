@@ -23,9 +23,9 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const { logger, logEvents } = require("./middleware/logger");
 const verifyJwt = require("./middleware/verifyJwt");
+const { checkExamStatus } = require("./middleware/checkExamStatus");
 
-const port = process.env.PORT || 8080; // Vercel will provide the PORT variable
-// rest of your code remains the same
+const port = process.env.PORT || 8080;
 
 const options = {
   definition: {
@@ -35,7 +35,7 @@ const options = {
       version: "1.0.0",
     },
   },
-  apis: ["routes/*.js"], // Укажите путь к вашим файлам маршрутов
+  apis: ["routes/*.js"],
 };
 
 const specs = swaggerJsdoc(options);
@@ -43,6 +43,8 @@ const specs = swaggerJsdoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 app.use(express.json());
+checkExamStatus();
+
 app.use(morgan("common"));
 app.use(cookieParser());
 app.use(cors());

@@ -4,9 +4,9 @@ const { Schema } = mongoose;
 const ExamsSchema = new Schema({
   subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subjects" }],
   status: { type: String, enum: ["active", "inactive"], default: "active" },
-  startedAt: { type: Date },
+  startedAt: { type: Date, required: true },
   results: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
-  finishedAt: { type: Date },
+  finishedAt: { type: Date, required: true },
   examType: { type: String, enum: ["last", "random"], default: "random" },
   amountOfPassed: { type: Number, default: 0 },
 });
