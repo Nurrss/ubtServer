@@ -8,6 +8,8 @@ const {
   registerStudentsFromUrl,
 } = require("../controllers/excelRegisterController");
 const { studentStartsExam } = require("../controllers/studentStartsExam");
+const { submitAnswer } = require("../controllers/submitAnswer");
+const { getResultForStudent } = require("../controllers/GetResultForStudent");
 
 const student = new ApiOptimizer(Students);
 const modelName = "Students";
@@ -60,5 +62,7 @@ router.route("/:id").put(async (req, res) => {
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/excel", registerStudentsFromUrl);
 router.post("/startExam", studentStartsExam);
+router.post("/submitAnswer", submitAnswer);
+router.post("/getResult", getResultForStudent);
 
 module.exports = router;

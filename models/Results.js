@@ -10,13 +10,25 @@ const ResultsSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Students",
   },
-  score: { type: Number, default: 0 },
-  questionsAnswered: [
+  subjects: [
     {
-      questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Questions" },
-      isCorrect: { type: Boolean },
+      name: { type: String },
+      results: [
+        {
+          questionNumber: { type: Number },
+          isCorrect: { type: Boolean },
+        },
+      ],
+      totalPoints: { type: Number },
+      totalCorrect: { type: Number },
+      totalIncorrect: { type: Number },
+      percent: { type: String },
     },
   ],
+  overallScore: { type: Number },
+  totalCorrect: { type: Number },
+  totalIncorrect: { type: Number },
+  overallPercent: { type: String },
 });
 
 module.exports = mongoose.model("Results", ResultsSchema);

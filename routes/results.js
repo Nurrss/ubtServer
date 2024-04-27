@@ -9,7 +9,6 @@ const checkTeacher = require("../middleware/checkRole");
 const results = new ApiOptimizer(Results);
 const modelName = "Results";
 
-// get all done
 router.route("/").get(async (req, res) => {
   try {
     await results.getAll(req, res);
@@ -18,7 +17,6 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-//delete an results by id done
 router.route("/:id").delete(async (req, res) => {
   try {
     await results.deleteById(req, res, modelName);
@@ -27,7 +25,6 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-// get by id done
 router.route("/:id").get(async (req, res) => {
   try {
     await results.getById(req, res, modelName);
@@ -36,7 +33,6 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// add new results done
 router.post("/add", checkTeacher, async (req, res) => {
   try {
     const { exam, student, score } = req.body;
@@ -47,7 +43,6 @@ router.post("/add", checkTeacher, async (req, res) => {
   }
 });
 
-// Update results done
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
