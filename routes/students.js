@@ -4,11 +4,10 @@ const _ = require("lodash");
 const Students = require("../models/Students");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const getExamController = require("../controllers/examController");
-const registerExcel = require("../controllers/excelRegisterController");
 const {
   registerStudentsFromUrl,
 } = require("../controllers/excelRegisterController");
+const { studentStartsExam } = require("../controllers/studentStartsExam");
 
 const student = new ApiOptimizer(Students);
 const modelName = "Students";
@@ -59,8 +58,7 @@ router.route("/:id").put(async (req, res) => {
 });
 
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
-router.post("/submit", getExamController.submitAndCheckAnswers);
-router.get("/result/:studentId", getExamController.getResultByStudentId);
 router.post("/excel", registerStudentsFromUrl);
+router.post("/startExam", studentStartsExam);
 
 module.exports = router;
