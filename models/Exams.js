@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const ExamsSchema = new Schema({
-  topics: [{ type: mongoose.Schema.Types.ObjectId, ref: "Topics" }],
+  subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subjects" }],
   status: { type: String, enum: ["active", "inactive"], default: "active" },
   startedAt: { type: Date },
   results: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],

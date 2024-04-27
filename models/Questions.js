@@ -16,11 +16,13 @@ const QuestionsSchema = new Schema({
     enum: ["twoPoints", "onePoint"],
     default: "onePoint",
   },
-  correctOption: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Options",
-    required: true,
-  },
+  correctOptions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Options",
+      required: true,
+    },
+  ],
 });
 
 module.exports = mongoose.model("Questions", QuestionsSchema);

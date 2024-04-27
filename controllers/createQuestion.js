@@ -7,10 +7,11 @@ const createQuestionWithOptions = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { question, image, options, point, type, topicId } = req.body;
+    const { question, image, options, type, topicId } = req.body;
 
     const createdOptions = [];
-    let correctOptionId = null;
+    let correctOptionsIds = [];
+    let ball = 0;
     for (const optionData of options) {
       const option = new Options({
         text: optionData.text,
@@ -18,20 +19,32 @@ const createQuestionWithOptions = async (req, res) => {
       });
       await option.save({ session });
       createdOptions.push(option);
-      if (option.isCorrect) correctOptionId = option._id;
+      if (option.isCorrect) correctOptionsIds.push(option._id);
     }
 
-    if (!correctOptionId) {
-      throw new Error("No correct option provided");
+    if (type === "twoPoints" && correctOptionsIds.length !== 2) {
+      throw new Error(
+        "Two correct options are required for 'twoPoints' type questions"
+      );
+    } else if (type === "onePoint" && correctOptionsIds.length !== 1) {
+      throw new Error(
+        "One correct option is required for 'onePoint' type questions"
+      );
+    }
+
+    if (type === "twoPoints" && correctOptionsIds.length == 2) {
+      ball = 2;
+    } else if (type === "onePoint" && correctOptionsIds.length == 1) {
+      ball = 1;
     }
 
     const newQuestion = new Questions({
       question,
       image,
       options: createdOptions.map((option) => option._id),
-      point,
+      point: ball,
       type,
-      correctOption: correctOptionId,
+      correctOptions: correctOptionsIds,
     });
 
     await newQuestion.save({ session });
@@ -43,19 +56,19 @@ const createQuestionWithOptions = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    const responseOptions = createdOptions.map(({ _id, text }) => ({
-      _id,
-      text,
-    }));
     res.status(201).json({
       message: "Question and options added successfully",
       question: {
         _id: newQuestion._id,
         question: newQuestion.question,
         image: newQuestion.image,
-        options: responseOptions,
+        options: createdOptions.map((option) => ({
+          _id: option._id,
+          text: option.text,
+        })),
         point: newQuestion.point,
         type: newQuestion.type,
+        correctOptions: correctOptionsIds,
       },
     });
   } catch (error) {
