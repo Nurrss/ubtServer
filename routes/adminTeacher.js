@@ -4,62 +4,62 @@ const bcrypt = require("bcrypt");
 const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
+const Subjects = require("../models/Subjects");
 const errorHandler = require("../middleware/errorHandler");
 const Teachers = require("../models/Teachers");
 
 router.post("/add", async (req, res) => {
   try {
-    const { name, surname, email, literal, classNum, subject } = req.body;
+    const { name, surname, email, literal, classNum, subjectName } = req.body;
+
+    const hash = await bcrypt.hash(`${name + "123" + surname}`, hashConstance);
 
     const validateEmail = async (email) => {
-      let user = await Users.findOne({ email });
-      return user ? false : true;
+      return !(await Users.findOne({ email }));
     };
 
     let emailNotRegistered = await validateEmail(email);
     if (!emailNotRegistered) {
       return res.status(400).json({
-        message: `Email is already registered.`,
+        message: "Email is already registered.",
         success: false,
       });
     }
 
-    const hashedPassword = await bcrypt.hash(
-      `${name + "123" + surname}`,
-      hashConstance
-    );
     const newUser = new Users({
       name,
       surname,
       email,
-      password: hashedPassword,
+      password: hash,
       role: "teacher",
     });
 
     const savedUser = await newUser.save();
 
-    let classForTeacher;
-
-    let existingClass = await Classes.findOne({
+    let classForTeacher = await Classes.findOne({
       class: classNum,
       literal: literal,
     });
 
-    if (!existingClass) {
+    if (!classForTeacher) {
       const newClass = new Classes({
         class: classNum,
         literal,
         students: [],
       });
-      existingClass = await newClass.save();
+      classForTeacher = await newClass.save();
     }
 
-    classForTeacher = existingClass;
+    let subject = await Subjects.findOne({ subject: subjectName });
+    if (!subject) {
+      subject = new Subjects({ subject: subjectName });
+      subject = await subject.save();
+    }
 
     const newTeacher = new Teachers({
       user: savedUser._id,
       class: classForTeacher._id,
-      subject,
+      subject: subject._id,
     });
 
     const savedTeacher = await newTeacher.save();
@@ -67,7 +67,7 @@ router.post("/add", async (req, res) => {
     classForTeacher.teacher = savedTeacher._id;
     await classForTeacher.save();
 
-    res.status(201).send(savedTeacher);
+    res.status(201).json(savedTeacher);
   } catch (err) {
     errorHandler(err, req, res);
   }
@@ -129,21 +129,12 @@ router.get("/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const teachers = await Teachers.find()
-      .populate({
-        path: "user",
-        select: "name surname email", // Only include fields that are necessary
-      })
-      .populate({
-        path: "class",
-        select: "class literal", // Only include fields that are necessary
-      })
-      .populate({
-        path: "subject",
-        select: "subject", // This will only include the "subject" field from the Subjects model
-      });
+      .populate("user", "name surname email") // Simplified populate for user
+      .populate("class", "class literal") // Simplified populate for class
+      .populate("subject", "subject"); // Simplified populate for subject
 
     if (!teachers.length) {
-      return res.status(200).send([]);
+      return res.status(200).json([]); // Send an empty array if no teachers found
     }
 
     const teachersList = teachers.map((teacher) => ({
@@ -151,7 +142,7 @@ router.get("/", async (req, res) => {
       name: teacher.user.name,
       surname: teacher.user.surname,
       group: `${teacher.class.class}${teacher.class.literal}`,
-      subject: teacher.subject.subject, // This will give you the subject name
+      subject: teacher.subject ? teacher.subject.subject : "No subject", // Ensure we have a subject before accessing its name
       email: teacher.user.email,
     }));
 
