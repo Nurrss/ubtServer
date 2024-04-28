@@ -128,7 +128,20 @@ router.get("/:id", async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const teachers = await Teachers.find().populate("user").populate("class");
+    const teachers = await Teachers.find()
+      .populate({
+        path: "user",
+        select: "name surname email", // Only include fields that are necessary
+      })
+      .populate({
+        path: "class",
+        select: "class literal", // Only include fields that are necessary
+      })
+      .populate({
+        path: "subject",
+        select: "subject", // This will only include the "subject" field from the Subjects model
+      });
+
     if (!teachers.length) {
       return res.status(200).send([]);
     }
@@ -138,7 +151,7 @@ router.get("/", async (req, res) => {
       name: teacher.user.name,
       surname: teacher.user.surname,
       group: `${teacher.class.class}${teacher.class.literal}`,
-      subject: teacher.subject,
+      subject: teacher.subject.subject, // This will give you the subject name
       email: teacher.user.email,
     }));
 
