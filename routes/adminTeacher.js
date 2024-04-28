@@ -72,38 +72,57 @@ router.post("/add", async (req, res) => {
     errorHandler(err, req, res);
   }
 });
-
 router.put("/:id", async (req, res) => {
-  try {
-    const { name, surname, email, literal, classNum, subject } = req.body;
-    const teacherId = req.params.id;
+  const teacherId = req.params.id;
+  const { name, surname, email, literal, classNum, subjectId } = req.body;
 
-    let updatedClassForTeacher;
+  try {
+    // Find the existing teacher
+    const teacher = await Teachers.findById(teacherId).populate("user");
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Update User details
+    const user = await Users.findById(teacher.user._id);
+    if (user) {
+      user.name = name;
+      user.surname = surname;
+      user.email = email;
+      await user.save();
+    } else {
+      return res.status(404).json({ message: "Associated user not found" });
+    }
+
+    // Update or create Class
+    let updatedClass;
     if (classNum && literal) {
-      updatedClassForTeacher = await Classes.findOneAndUpdate(
+      updatedClass = await Classes.findOneAndUpdate(
         { class: classNum, literal: literal },
-        { teacher: teacherId },
+        {},
         { new: true, upsert: true }
       );
+
+      // Set the teacher for the class
+      updatedClass.teacher = teacher._id;
+      await updatedClass.save();
     }
 
-    const updatedTeacher = await Teachers.findById(teacherId).populate("user");
-    if (updatedTeacher) {
-      updatedTeacher.user.name = name;
-      updatedTeacher.user.surname = surname;
-      updatedTeacher.user.email = email;
-      await updatedTeacher.user.save();
-
-      updatedTeacher.subject = subject;
-      updatedTeacher.class = updatedClassForTeacher
-        ? updatedClassForTeacher._id
-        : updatedTeacher.class;
-      await updatedTeacher.save();
-
-      res.status(200).send(updatedTeacher);
-    } else {
-      return res.status(404).send("Teacher not found.");
+    // Update Subject
+    if (subjectId) {
+      const subject = await Subjects.findById(subjectId);
+      if (subject) {
+        teacher.subject = subject._id;
+      } else {
+        return res.status(404).json({ message: "Subject not found" });
+      }
     }
+
+    // Save updated teacher details
+    await teacher.save();
+
+    res.status(200).json({ message: "Teacher updated successfully", teacher });
   } catch (err) {
     errorHandler(err, req, res);
   }
