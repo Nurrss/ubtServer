@@ -14,7 +14,6 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       finishedAt: new Date(finished_at),
     });
 
-    // Save the new exam
     await newExam.save();
 
     res.status(201).json({

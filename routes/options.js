@@ -9,7 +9,6 @@ const checkTeacher = require("../middleware/checkTeacher");
 const options = new ApiOptimizer(Options);
 const modelName = "Options";
 
-// get all done
 router.route("/").get(async (req, res) => {
   try {
     await options.getAll(req, res);
@@ -18,7 +17,6 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-//delete an options by id done
 router.route("/:id").delete(async (req, res) => {
   try {
     await options.deleteById(req, res, modelName);
@@ -27,7 +25,6 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-// get by id done
 router.route("/:id").get(async (req, res) => {
   try {
     await options.getById(req, res, modelName);
@@ -36,7 +33,6 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
-// add new options done
 router.post("/add", async (req, res) => {
   try {
     const { question, text } = req.body;
@@ -47,7 +43,6 @@ router.post("/add", async (req, res) => {
   }
 });
 
-// Update options done
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
