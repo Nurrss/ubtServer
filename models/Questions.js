@@ -23,6 +23,10 @@ const QuestionsSchema = new Schema({
       required: true,
     },
   ],
+  language: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Questions", QuestionsSchema);

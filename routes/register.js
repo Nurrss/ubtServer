@@ -9,6 +9,56 @@ const Subjects = require("../models/Subjects");
 const errorHandler = require("../middleware/errorHandler");
 const handleNewUser = require("../controllers/registerController");
 
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     tags: [Registration]
+ *     summary: Register a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The email address of the user
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: The password of the user
+ *               role:
+ *                 type: string
+ *                 enum: [teacher, admin, student]
+ *                 description: The role of the user
+ *     responses:
+ *       200:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: The ID of the registered user
+ *                 email:
+ *                   type: string
+ *                   format: email
+ *                   description: The email address of the registered user
+ *                 role:
+ *                   type: string
+ *                   enum: [teacher, admin, student]
+ *                   description: The role of the registered user
+ *       400:
+ *         description: Bad request
+ *       500:
+ *         description: Internal server error
+ */
+
 router.post("/", handleNewUser);
 
 router.post("/teacher", async (req, res) => {

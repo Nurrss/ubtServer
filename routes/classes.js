@@ -8,6 +8,134 @@ const errorHandler = require("../middleware/errorHandler");
 const clases = new ApiOptimizer(Classes);
 const modelName = "Classes";
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Class:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The ID of the class
+ *         studentsCount:
+ *           type: number
+ *           description: The number of students in the class
+ *         literal:
+ *           type: string
+ *           description: The literal representation of the class
+ *         className:
+ *           type: string
+ *           description: The name of the class
+ *         students:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: The IDs of the students in the class
+ *
+ */
+
+/**
+ * @swagger
+ * /classes:
+ *   get:
+ *     tags: [Classes]
+ *     summary: Get all classes
+ *     responses:
+ *       200:
+ *         description: A list of all classes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Class'
+ * /classes/add:
+ *   post:
+ *     tags: [Classes]
+ *     summary: Add a new class
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               studentsCount:
+ *                 type: number
+ *                 description: The number of students in the class
+ *               literal:
+ *                 type: string
+ *                 description: The literal representation of the class
+ *               className:
+ *                 type: string
+ *                 description: The name of the class
+ *     responses:
+ *       201:
+ *         description: Class added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Class'
+ *
+ * /classes/{id}:
+ *   get:
+ *     tags: [Classes]
+ *     summary: Get a class by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The class
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Class'
+ *       404:
+ *         description: Class not found
+ *   put:
+ *     tags: [Classes]
+ *     summary: Update a class by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Class'
+ *     responses:
+ *       200:
+ *         description: Class updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Class'
+ *       400:
+ *         description: Bad request
+ *   delete:
+ *     tags: [Classes]
+ *     summary: Delete a class by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Class deleted successfully
+ *       404:
+ *         description: Class not found
+ */
 
 router.route("/").get(async (req, res) => {
   try {

@@ -13,6 +13,111 @@ const errorHandler = require("../middleware/errorHandler");
 const admin = new ApiOptimizer(Admins);
 const modelName = "Admins";
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Admin:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The ID of the admin
+ *         user:
+ *           type: string
+ *           description: The ID of the associated user
+ *
+ * /admins/:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Get all admins
+ *     responses:
+ *       200:
+ *         description: A list of all admins
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Admin'
+ * /admins/add:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Add a new admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Admin'
+ *     responses:
+ *       201:
+ *         description: Admin added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Admin'
+ *
+ * /admins/{id}:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Get an admin by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Admin found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Admin'
+ *       404:
+ *         description: Admin not found
+ *   put:
+ *     tags: [Admin]
+ *     summary: Update an admin by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Admin'
+ *     responses:
+ *       200:
+ *         description: Admin updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Admin'
+ *       404:
+ *         description: Admin not found
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Delete an admin by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Admin deleted successfully
+ *       404:
+ *         description: Admin not found
+ 
+ */
+
 router.route("/").get(async (req, res) => {
   try {
     await admin.getAll(req, res);

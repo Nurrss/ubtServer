@@ -8,6 +8,111 @@ const Subjects = require("../models/Subjects");
 const errorHandler = require("../middleware/errorHandler");
 const Teachers = require("../models/Teachers");
 
+/**
+@swagger
+ * components:
+ *   schemas:
+ *     Admin:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The ID of the admin
+ *         user:
+ *           type: string
+ *           description: The ID of the associated user
+ *
+ * /adminTeacher/:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Get all teachers
+ *     responses:
+ *       200:
+ *         description: A list of all teachers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Teacher'
+ * /adminTeacher/add:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Add a new teacher
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the teacher
+ *               surname:
+ *                 type: string
+ *                 description: The surname of the teacher
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The email of the teacher
+ *               literal:
+ *                 type: string
+ *                 description: The literal representation of the class
+ *               classNum:
+ *                 type: string
+ *                 description: The class number
+ *               subjectName:
+ *                 type: string
+ *                 description: The name of the subject
+ *     responses:
+ *       201:
+ *         description: Teacher added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Teacher'
+ * /adminTeacher/{id}:
+ *   put:
+ *     tags: [Admin]
+ *     summary: Update a teacher by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Teacher'
+ *     responses:
+ *       200:
+ *         description: Teacher updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Teacher'
+ *       404:
+ *         description: Teacher not found
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Delete a teacher by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Teacher and associated user deleted successfully
+ *       404:
+ *         description: Teacher not found
+ */
+
 router.post("/add", async (req, res) => {
   try {
     const { name, surname, email, literal, classNum, subjectName } = req.body;

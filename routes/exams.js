@@ -13,6 +13,157 @@ const {
 const exams = new ApiOptimizer(Exams);
 const modelName = "Exams";
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Subject:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The ID of the subject
+ *         name:
+ *           type: string
+ *           description: The name of the subject
+ *
+ *     Exam:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The ID of the exam
+ *         subjects:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Subject'
+ *           description: The subjects included in the exam
+ *         status:
+ *           type: string
+ *           enum: [active, inactive]
+ *           description: The status of the exam
+ *         startedAt:
+ *           type: string
+ *           format: date-time
+ *           description: The start date and time of the exam
+ *         results:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: The IDs of the results associated with the exam
+ *         finishedAt:
+ *           type: string
+ *           format: date-time
+ *           description: The end date and time of the exam
+ *         examType:
+ *           type: string
+ *           enum: [last, random]
+ *           description: The type of the exam
+ *         amountOfPassed:
+ *           type: number
+ *           description: The number of participants who passed the exam
+ */
+
+/**
+ * @swagger
+ * /exams:
+ *   get:
+ *     tags: [Exams]
+ *     summary: Get all exams
+ *     responses:
+ *       200:
+ *         description: A list of all exams
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Exam'
+ * /exams/add:
+ *   post:
+ *     tags: [Exams]
+ *     summary: Create an exam with all subjects
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               started_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The start date and time of the exam
+ *               finished_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The end date and time of the exam
+ *     responses:
+ *       201:
+ *         description: Exam with all subjects created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 exam:
+ *                   $ref: '#/components/schemas/Exam'
+ *       400:
+ *         description: Error creating exam with all subjects
+ *   put:
+ *     tags: [Exams]
+ *     summary: Update an exam by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               started_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The updated start date and time of the exam
+ *               finished_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The updated end date and time of the exam
+ *               examType:
+ *                 type: string
+ *                 enum: [last, random]
+ *                 description: The updated type of the exam
+ *     responses:
+ *       200:
+ *         description: Exam updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Exam'
+ *       400:
+ *         description: Error updating exam
+ *   delete:
+ *     tags: [Exams]
+ *     summary: Delete an exam by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Exam deleted successfully
+ */
+
 router.route("/").get(async (req, res) => {
   try {
     await exams.getAll(req, res);
