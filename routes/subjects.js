@@ -2,6 +2,7 @@ const router = require("express").Router();
 const _ = require("lodash");
 
 const Subjects = require("../models/Subjects");
+const Topics = require("../models/Topics");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
@@ -142,7 +143,17 @@ router.route("/:id").delete(async (req, res) => {
 
 router.route("/:id").get(async (req, res) => {
   try {
-    await subjects.getById(req, res, modelName);
+    const subject = await Subjects.findById(req.params.id).populate({
+      path: "topics",
+      select: "title",
+    });
+
+    if (!subject) {
+      res.status(404).send({ message: "Subject not found" });
+      return;
+    }
+
+    res.json(subject);
   } catch (err) {
     errorHandler(err, req, res);
   }
