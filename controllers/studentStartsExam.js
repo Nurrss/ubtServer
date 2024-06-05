@@ -30,8 +30,6 @@ const studentStartsExam = async (req, res) => {
       },
     });
 
-    console.log(exam);
-
     if (!exam || !exam.subjects) {
       return res.status(404).json({ message: "Exam or subjects not found" });
     }
@@ -59,8 +57,6 @@ const studentStartsExam = async (req, res) => {
       }
     });
 
-    console.log(questionsBySubject);
-
     const result = new Results({
       exam: examId,
       student: studentId,
@@ -79,6 +75,10 @@ const studentStartsExam = async (req, res) => {
     });
 
     await result.save();
+
+    exam.results.push(result._id);
+    await exam.save();
+
     res.status(200).json({ questionsBySubject, resultId: result._id });
   } catch (error) {
     console.error("Error starting exam:", error);

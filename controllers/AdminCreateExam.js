@@ -8,7 +8,6 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
 
     // Retrieve all subjects with their associated topics
     const allSubjects = await Subjects.find();
-    console.log(allSubjects);
     const newExam = new Exams({
       subjects: allSubjects,
       startedAt: new Date(started_at),
