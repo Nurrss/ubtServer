@@ -17,54 +17,68 @@ const modelName = "Questions";
  *   schemas:
  *     Option:
  *       type: object
+ *       required:
+ *         - text
+ *         - isCorrect
  *       properties:
  *         _id:
  *           type: string
- *           description: The ID of the option
+ *           description: The unique identifier for the option.
  *         text:
  *           type: string
- *           description: The text of the option
+ *           description: The text of the option.
+ *         isCorrect:
+ *           type: boolean
+ *           description: Indicates if the option is the correct answer.
  *
  *     Question:
  *       type: object
+ *       required:
+ *         - question
+ *         - options
+ *         - point
+ *         - type
+ *         - language
  *       properties:
  *         _id:
  *           type: string
- *           description: The ID of the question
+ *           description: The unique identifier for the question.
  *         question:
  *           type: string
- *           description: The text of the question
+ *           description: The text of the question.
  *         image:
  *           type: string
- *           description: The image URL associated with the question
+ *           description: URL of an image associated with the question, if any.
  *         options:
  *           type: array
  *           items:
  *             $ref: '#/components/schemas/Option'
- *           description: The options associated with the question
+ *           description: A list of options for the question.
  *         point:
  *           type: number
- *           description: The point value of the question
+ *           description: The number of points the question is worth.
  *         type:
  *           type: string
  *           enum: [twoPoints, onePoint]
- *           description: The type of question
+ *           description: The type of question based on the scoring system.
  *         correctOptions:
  *           type: array
  *           items:
  *             type: string
- *           description: The IDs of the correct options
- */
-
-/**
- * @swagger
+ *           description: A list of IDs referencing the correct options.
+ *         language:
+ *           type: string
+ *           enum: [kz, ru]
+ *           description: The language of the question.
+ *
  * /questions:
  *   get:
- *     tags: [Questions]
+ *     tags:
+ *       - Questions
  *     summary: Get all questions
  *     responses:
  *       200:
- *         description: A list of all questions
+ *         description: A list of questions
  *         content:
  *           application/json:
  *             schema:
@@ -74,70 +88,30 @@ const modelName = "Questions";
  *
  * /question/add:
  *   post:
+ *     tags:
+ *       - Questions
  *     summary: Add a new question
- *     tags: [Questions]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               question:
- *                 type: string
- *                 description: The text of the question
- *               image:
- *                 type: string
- *                 description: The image URL associated with the question
- *               options:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     text:
- *                       type: string
- *                       description: The text of the option
- *                     isCorrect:
- *                       type: boolean
- *                       description: Indicates whether the option is correct
- *                 description: The options associated with the question
- *               point:
- *                 type: number
- *                 description: The point value of the question
- *               type:
- *                 type: string
- *                 enum: [twoPoints, onePoint]
- *                 description: The type of question
- *               correctOptions:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: The IDs of the correct options
- *               topicId:
- *                 type: string
- *                 description: The ID of the topic associated with the question
+ *             $ref: '#/components/schemas/Question'
  *     responses:
  *       201:
  *         description: Question added successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: A success message
- *                 question:
- *                   $ref: '#/components/schemas/Question'
+ *               $ref: '#/components/schemas/Question'
  *       400:
- *         description: Bad request, topic ID is required
- *       404:
- *         description: Topic not found
+ *         description: Bad request, invalid input
  *
  * /questions/{id}:
  *   get:
- *     tags: [Questions]
- *     summary: Get a question by ID
+ *     tags:
+ *       - Questions
+ *     summary: Get a specific question by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -146,15 +120,18 @@ const modelName = "Questions";
  *           type: string
  *     responses:
  *       200:
- *         description: The question
+ *         description: Question retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Question'
+ *       404:
+ *         description: Question not found
  *
  *   put:
- *     tags: [Questions]
- *     summary: Update a question by ID
+ *     tags:
+ *       - Questions
+ *     summary: Update a specific question by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -174,10 +151,13 @@ const modelName = "Questions";
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Question'
+ *       400:
+ *         description: Bad request, invalid input
  *
  *   delete:
- *     tags: [Questions]
- *     summary: Delete a question by ID
+ *     tags:
+ *       - Questions
+ *     summary: Delete a specific question by ID
  *     parameters:
  *       - in: path
  *         name: id
@@ -187,6 +167,8 @@ const modelName = "Questions";
  *     responses:
  *       200:
  *         description: Question deleted successfully
+ *       404:
+ *         description: Question not found
  */
 
 router.route("/").get(async (req, res) => {

@@ -16,103 +16,113 @@ const modelName = "Subjects";
  *   schemas:
  *     Subject:
  *       type: object
+ *       required:
+ *         - kz_subject
+ *         - ru_subject
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated ID of the subject
+ *         kz_subject:
+ *           type: string
+ *           description: The name of the subject in Kazakh
+ *         ru_subject:
+ *           type: string
+ *           description: The name of the subject in Russian
  *         topics:
  *           type: array
  *           items:
  *             type: string
- *           description: Array of topic IDs associated with the subject
- *         subject:
- *           type: string
- *           description: The name of the subject
- */
-
-/**
- * @swagger
- * /subjects:
- *   get:
- *     tags: [Subjects]
- *     summary: Get all subjects
- *     responses:
- *       200:
- *         description: A list of all subjects
+ *             description: References to topics associated with this subject
+ *           description: A list of topics IDs related to the subject
+ *
+ * paths:
+ *   /subjects:
+ *     get:
+ *       tags:
+ *         - Subjects
+ *       summary: Retrieve a list of all subjects
+ *       responses:
+ *         200:
+ *           description: A list of subjects
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Subject'
+ *     post:
+ *       tags:
+ *         - Subjects
+ *       summary: Create a new subject
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
+ *               $ref: '#/components/schemas/Subject'
+ *       responses:
+ *         201:
+ *           description: Subject created successfully
+ *           content:
+ *             application/json:
+ *               schema:
  *                 $ref: '#/components/schemas/Subject'
  *
- *   post:
- *     tags: [Subjects]
- *     summary: Create a new subject
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
+ *   /subjects/{id}:
+ *     get:
+ *       tags:
+ *         - Subjects
+ *       summary: Get a subject by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
  *           schema:
- *             $ref: '#/components/schemas/Subject'
- *     responses:
- *       201:
- *         description: Subject created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Subject'
- *
- * /subjects/{id}:
- *   get:
- *     tags: [Subjects]
- *     summary: Get a subject by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: The subject
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Subject'
- *
- *   put:
- *     tags: [Subjects]
- *     summary: Update a subject by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
+ *             type: string
+ *       responses:
+ *         200:
+ *           description: Detailed information about the subject
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Subject'
+ *     put:
+ *       tags:
+ *         - Subjects
+ *       summary: Update a subject by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
  *           schema:
- *             $ref: '#/components/schemas/Subject'
- *     responses:
- *       200:
- *         description: Subject updated successfully
+ *             type: string
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Subject'
- *
- *   delete:
- *     tags: [Subjects]
- *     summary: Delete a subject by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Subject deleted successfully
+ *       responses:
+ *         200:
+ *           description: Subject updated successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Subject'
+ *     delete:
+ *       tags:
+ *         - Subjects
+ *       summary: Delete a subject by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
+ *           schema:
+ *             type: string
+ *       responses:
+ *         200:
+ *           description: Subject deleted successfully
  */
 
 router.route("/").get(async (req, res) => {

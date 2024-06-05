@@ -18,10 +18,10 @@ const modelName = "Results";
  *       properties:
  *         exam:
  *           type: string
- *           description: The ID of the exam
+ *           description: The ID of the exam associated with the results.
  *         student:
  *           type: string
- *           description: The ID of the student
+ *           description: The ID of the student who took the exam.
  *         subjects:
  *           type: array
  *           items:
@@ -29,63 +29,59 @@ const modelName = "Results";
  *             properties:
  *               name:
  *                 type: string
- *                 description: The name of the subject
+ *                 description: Name of the subject.
  *               results:
  *                 type: array
  *                 items:
  *                   type: object
  *                   properties:
  *                     questionNumber:
- *                       type: integer
- *                       description: The number of the question
+ *                       type: number
+ *                       description: The sequential number of the question.
  *                     isCorrect:
  *                       type: boolean
- *                       description: Indicates whether the answer is correct
+ *                       description: Whether the answer was correct.
  *               totalPoints:
  *                 type: number
- *                 description: Total points obtained in the subject
+ *                 description: Total points gained in the subject.
  *               totalCorrect:
  *                 type: number
- *                 description: Total correct answers in the subject
+ *                 description: Count of correctly answered questions.
  *               totalIncorrect:
  *                 type: number
- *                 description: Total incorrect answers in the subject
+ *                 description: Count of incorrectly answered questions.
  *               percent:
  *                 type: string
- *                 description: Percentage score in the subject
+ *                 description: Percentage of correct answers.
  *         overallScore:
  *           type: number
- *           description: Overall score obtained in the exam
+ *           description: Total score obtained in the exam.
  *         totalCorrect:
  *           type: number
- *           description: Total correct answers in the exam
+ *           description: Total number of correct answers across all subjects.
  *         totalIncorrect:
  *           type: number
- *           description: Total incorrect answers in the exam
+ *           description: Total number of incorrect answers across all subjects.
  *         overallPercent:
  *           type: string
- *           description: Overall percentage score in the exam
- */
-
-/**
- * @swagger
+ *           description: Overall percentage score for the entire exam.
+ *
  * /results:
  *   get:
  *     tags: [Results]
- *     summary: Get all results
+ *     summary: Retrieves a list of all results.
  *     responses:
  *       200:
- *         description: A list of all results
+ *         description: A list of results.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Result'
- *
  *   post:
  *     tags: [Results]
- *     summary: Create a new result
+ *     summary: Creates a new result entry.
  *     requestBody:
  *       required: true
  *       content:
@@ -94,7 +90,7 @@ const modelName = "Results";
  *             $ref: '#/components/schemas/Result'
  *     responses:
  *       201:
- *         description: Result created successfully
+ *         description: Successfully created a new result.
  *         content:
  *           application/json:
  *             schema:
@@ -103,7 +99,7 @@ const modelName = "Results";
  * /results/{id}:
  *   get:
  *     tags: [Results]
- *     summary: Get a result by ID
+ *     summary: Retrieves a result by ID.
  *     parameters:
  *       - in: path
  *         name: id
@@ -112,15 +108,16 @@ const modelName = "Results";
  *           type: string
  *     responses:
  *       200:
- *         description: The result
+ *         description: Detail of a specific result.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Result'
- *
+ *       404:
+ *         description: Result not found.
  *   put:
  *     tags: [Results]
- *     summary: Update a result by ID
+ *     summary: Updates an existing result.
  *     parameters:
  *       - in: path
  *         name: id
@@ -135,15 +132,12 @@ const modelName = "Results";
  *             $ref: '#/components/schemas/Result'
  *     responses:
  *       200:
- *         description: Result updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Result'
- *
+ *         description: Result updated successfully.
+ *       404:
+ *         description: Result not found.
  *   delete:
  *     tags: [Results]
- *     summary: Delete a result by ID
+ *     summary: Deletes a result by ID.
  *     parameters:
  *       - in: path
  *         name: id
@@ -152,7 +146,9 @@ const modelName = "Results";
  *           type: string
  *     responses:
  *       200:
- *         description: Result deleted successfully
+ *         description: Result deleted successfully.
+ *       404:
+ *         description: Result not found.
  */
 
 router.route("/").get(async (req, res) => {

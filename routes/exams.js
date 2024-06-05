@@ -26,7 +26,6 @@ const modelName = "Exams";
  *         name:
  *           type: string
  *           description: The name of the subject
- *
  *     Exam:
  *       type: object
  *       properties:
@@ -62,10 +61,11 @@ const modelName = "Exams";
  *         amountOfPassed:
  *           type: number
  *           description: The number of participants who passed the exam
- */
-
-/**
- * @swagger
+ *
+ * tags:
+ *   - name: Exams
+ *     description: Endpoints for managing exams
+ *
  * /exams:
  *   get:
  *     tags: [Exams]
@@ -79,6 +79,7 @@ const modelName = "Exams";
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Exam'
+ *
  * /exams/add:
  *   post:
  *     tags: [Exams]
@@ -88,31 +89,36 @@ const modelName = "Exams";
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               started_at:
- *                 type: string
- *                 format: date-time
- *                 description: The start date and time of the exam
- *               finished_at:
- *                 type: string
- *                 format: date-time
- *                 description: The end date and time of the exam
+ *             $ref: '#/components/schemas/Exam'
  *     responses:
  *       201:
- *         description: Exam with all subjects created successfully
+ *         description: Exam created successfully
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Success message
- *                 exam:
- *                   $ref: '#/components/schemas/Exam'
+ *               $ref: '#/components/schemas/Exam'
  *       400:
- *         description: Error creating exam with all subjects
+ *         description: Error creating exam
+ *
+ * /exams/{id}:
+ *   get:
+ *     tags: [Exams]
+ *     summary: Get an exam by ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Exam found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Exam'
+ *       404:
+ *         description: Exam not found
  *   put:
  *     tags: [Exams]
  *     summary: Update an exam by ID
@@ -127,20 +133,7 @@ const modelName = "Exams";
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               started_at:
- *                 type: string
- *                 format: date-time
- *                 description: The updated start date and time of the exam
- *               finished_at:
- *                 type: string
- *                 format: date-time
- *                 description: The updated end date and time of the exam
- *               examType:
- *                 type: string
- *                 enum: [last, random]
- *                 description: The updated type of the exam
+ *             $ref: '#/components/schemas/Exam'
  *     responses:
  *       200:
  *         description: Exam updated successfully
@@ -162,6 +155,8 @@ const modelName = "Exams";
  *     responses:
  *       200:
  *         description: Exam deleted successfully
+ *       404:
+ *         description: Exam not found
  */
 
 router.route("/").get(async (req, res) => {

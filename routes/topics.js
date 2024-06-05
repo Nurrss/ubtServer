@@ -17,140 +17,141 @@ const modelName = "Topics";
 
 /**
  * @swagger
- * tags:
- *   name: Topics
- *   description: API endpoints for managing topics
- *
  * components:
  *   schemas:
  *     Topic:
  *       type: object
  *       required:
- *         - title
- *       properties:
- *         title:
- *           type: string
- *           description: The title of the topic
- *         questions:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Question'
- *     Question:
- *       type: object
+ *         - kz_title
+ *         - rus_title
  *       properties:
  *         _id:
  *           type: string
- *           description: The unique identifier for a question
- *         type:
+ *           description: The auto-generated ID of the topic
+ *         kz_title:
  *           type: string
- *           description: The type of the question
+ *           description: The name of the topic in Kazakh
+ *         rus_title:
+ *           type: string
+ *           description: The name of the topic in Russian
+ *         kz_questions:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: IDs of questions in Kazakh associated with the topic
+ *         ru_questions:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: IDs of questions in Russian associated with the topic
  *
- * /topics:
- *   get:
- *     tags:
- *       - Topics
- *     summary: Retrieve all topics
- *     responses:
- *       200:
- *         description: A list of topics with question counts.
+ * paths:
+ *   /topics:
+ *     get:
+ *       tags:
+ *         - Topics
+ *       summary: Retrieve all topics
+ *       responses:
+ *         200:
+ *           description: A list of topics
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Topic'
+ *
+ *     post:
+ *       tags:
+ *         - Topics
+ *       summary: Add a new topic
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
+ *               type: object
+ *               properties:
+ *                 kz_title:
+ *                   type: string
+ *                   description: The Kazakh title of the topic
+ *                 rus_title:
+ *                   type: string
+ *                   description: The Russian title of the topic
+ *                 subjectId:
+ *                   type: string
+ *                   description: ID of the subject the topic belongs to
+ *       responses:
+ *         201:
+ *           description: Topic added successfully
+ *           content:
+ *             application/json:
+ *               schema:
  *                 $ref: '#/components/schemas/Topic'
  *
- * /topics/add:
- *   post:
- *     tags:
- *       - Topics
- *     summary: Add a new topic
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
+ *   /topics/{id}:
+ *     get:
+ *       tags:
+ *         - Topics
+ *       summary: Retrieve a specific topic by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               subjectId:
- *                 type: string
- *     responses:
- *       201:
- *         description: Topic added successfully.
+ *             type: string
+ *       responses:
+ *         200:
+ *           description: Detailed information about the topic
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Topic'
+ *
+ *     put:
+ *       tags:
+ *         - Topics
+ *       summary: Update a topic by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
+ *           schema:
+ *             type: string
+ *       requestBody:
+ *         required: true
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Topic'
- *       400:
- *         description: Bad request if required fields are missing.
- *       404:
- *         description: Subject not found.
+ *               type: object
+ *               properties:
+ *                 kz_title:
+ *                   type: string
+ *                   description: Update the Kazakh title of the topic
+ *                 rus_title:
+ *                   type: string
+ *                   description: Update the Russian title of the topic
+ *       responses:
+ *         200:
+ *           description: Topic updated successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Topic'
  *
- * /topics/{id}:
- *   get:
- *     tags:
- *       - Topics
- *     summary: Retrieve a topic by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Specific topic retrieved.
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Topic'
- *       404:
- *         description: Topic not found.
- *
- *   put:
- *     tags:
- *       - Topics
- *     summary: Update a topic by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
+ *     delete:
+ *       tags:
+ *         - Topics
+ *       summary: Delete a topic by ID
+ *       parameters:
+ *         - in: path
+ *           name: id
+ *           required: true
  *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               subjectId:
- *                 type: string
- *     responses:
- *       200:
- *         description: Topic updated successfully.
- *       404:
- *         description: Topic not found.
- *
- *   delete:
- *     tags:
- *       - Topics
- *     summary: Delete a topic by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Topic deleted successfully.
- *       404:
- *         description: Topic not found.
+ *             type: string
+ *       responses:
+ *         200:
+ *           description: Topic deleted successfully
  */
 
 router.route("/").get(async (req, res) => {

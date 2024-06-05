@@ -19,13 +19,19 @@ const modelName = "Admins";
  *   schemas:
  *     Admin:
  *       type: object
+ *       required:
+ *         - user
  *       properties:
  *         _id:
  *           type: string
- *           description: The ID of the admin
+ *           description: The unique identifier for the admin
  *         user:
  *           type: string
  *           description: The ID of the associated user
+ *
+ * tags:
+ *   - name: Admin
+ *     description: Admin management
  *
  * /admins/:
  *   get:
@@ -40,6 +46,7 @@ const modelName = "Admins";
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Admin'
+ *
  * /admins/add:
  *   post:
  *     tags: [Admin]
@@ -115,7 +122,6 @@ const modelName = "Admins";
  *         description: Admin deleted successfully
  *       404:
  *         description: Admin not found
- 
  */
 
 router.route("/").get(async (req, res) => {
