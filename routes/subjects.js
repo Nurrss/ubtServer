@@ -125,8 +125,8 @@ router.route("/").get(async (req, res) => {
 
 router.post("/add", async (req, res) => {
   try {
-    const { subject } = req.body;
-    const entity = { subject };
+    const { ru_subject, kz_subject } = req.body;
+    const entity = { ru_subject, kz_subject };
     await subjects.add({ entity, res });
   } catch (err) {
     errorHandler(err, req, res);

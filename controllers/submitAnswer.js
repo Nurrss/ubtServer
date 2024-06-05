@@ -1,8 +1,10 @@
-const Results = require("../models/Results");
-const Question = require("../models/Questions");
+const mongoose = require("mongoose");
+const Exams = require("../models/Exams");
 const Subjects = require("../models/Subjects");
+const Questions = require("../models/Questions");
+const Results = require("../models/Results");
 
-const submitAnswer = async (req, res) => {
+const submitOrUpdateAnswer = async (req, res) => {
   const {
     examId,
     studentId,
@@ -10,34 +12,36 @@ const submitAnswer = async (req, res) => {
     questionId,
     optionIds,
     questionNumber,
+    language,
   } = req.body;
 
   try {
-    const question = await Question.findById(questionId).populate(
+    const question = await Questions.findById(questionId).populate(
       "correctOptions"
     );
-    const subject = await Subjects.findOne({ subject: subjectName }).populate(
-      "topics"
-    );
-
-    if (!question || !subject) {
-      return res.status(404).json({ message: "Question or subject not found" });
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
     }
 
-    const totalQuestions = subject.topics.reduce(
-      (sum, topic) => sum + topic.questions.length,
-      0
-    );
+    const subjectField = language === "ru" ? "ru_subject" : "kz_subject";
+    const subjectQuery = {};
+    subjectQuery[subjectField] = subjectName;
 
-    const correctOptions = question.correctOptions.map((opt) =>
-      opt._id.toString()
-    );
-    const isCorrect =
-      optionIds.every((id) => correctOptions.includes(id)) &&
-      optionIds.length === correctOptions.length;
+    const subject = await Subjects.findOne(subjectQuery).populate({
+      path: "topics",
+      populate: {
+        path: language === "ru" ? "ru_questions" : "kz_questions",
+        populate: {
+          path: "options",
+        },
+      },
+    });
+
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
 
     let result = await Results.findOne({ exam: examId, student: studentId });
-
     if (!result) {
       result = new Results({
         exam: examId,
@@ -63,39 +67,58 @@ const submitAnswer = async (req, res) => {
       result.subjects.push(subjectResult);
     }
 
-    const answerIndex = subjectResult.results.findIndex(
+    const correctOptions = question.correctOptions.map((opt) =>
+      opt._id.toString()
+    );
+    const isCorrect =
+      optionIds.every((id) => correctOptions.includes(id)) &&
+      optionIds.length === correctOptions.length;
+
+    // Update or add new answer
+    const answer = subjectResult.results.find(
       (r) => r.questionNumber === questionNumber
     );
-
-    if (answerIndex !== -1) {
-      if (!subjectResult.results[answerIndex].isCorrect && isCorrect) {
-        subjectResult.totalPoints += question.point;
+    if (answer) {
+      // Update existing answer
+      if (answer.isCorrect !== isCorrect) {
+        if (isCorrect) {
+          subjectResult.totalPoints += question.point;
+        } else {
+          subjectResult.totalPoints -= question.point;
+        }
+        answer.isCorrect = isCorrect;
       }
-      subjectResult.results[answerIndex].isCorrect = isCorrect;
     } else {
+      // Add new answer
       subjectResult.results.push({ questionNumber, isCorrect });
       if (isCorrect) {
         subjectResult.totalPoints += question.point;
       }
     }
 
+    // Update counts
     subjectResult.totalCorrect = subjectResult.results.filter(
       (r) => r.isCorrect
     ).length;
-    subjectResult.totalIncorrect = totalQuestions - subjectResult.totalCorrect;
+    subjectResult.totalIncorrect =
+      subjectResult.results.length - subjectResult.totalCorrect;
     subjectResult.percent =
-      ((subjectResult.totalCorrect / totalQuestions) * 100).toFixed(2) + "%";
+      (
+        (subjectResult.totalCorrect / subjectResult.results.length) *
+        100
+      ).toFixed(2) + "%";
 
+    // Recalculate overall results
     result.overallScore = result.subjects.reduce(
-      (total, sub) => total + sub.totalPoints,
+      (sum, sub) => sum + sub.totalPoints,
       0
     );
     result.totalCorrect = result.subjects.reduce(
-      (total, sub) => total + sub.totalCorrect,
+      (sum, sub) => sum + sub.totalCorrect,
       0
     );
     result.totalIncorrect = result.subjects.reduce(
-      (total, sub) => total + sub.totalIncorrect,
+      (sum, sub) => sum + sub.totalIncorrect,
       0
     );
     result.overallPercent =
@@ -107,26 +130,16 @@ const submitAnswer = async (req, res) => {
     await result.save();
 
     res.status(200).json({
-      message: "Answer submitted successfully",
-      result: result.subjects.map((sub) => ({
-        name: sub.name,
-        results: sub.results.map((r) => ({
-          questionNumber: r.questionNumber,
-          isCorrect: r.isCorrect,
-        })),
-        totalPoints: sub.totalPoints,
-        totalCorrect: sub.totalCorrect,
-        totalIncorrect: sub.totalIncorrect,
-        percent: sub.percent,
-      })),
-      overallScore: result.overallScore,
-      totalCorrect: result.totalCorrect,
-      totalIncorrect: result.totalIncorrect,
-      overallPercent: result.overallPercent,
+      message: "Answer submitted or updated successfully",
+      result,
     });
   } catch (error) {
-    res.status(400).json({ message: "Error submitting answer", error });
+    console.error("Error occurred:", error);
+    res.status(400).json({
+      message: "Error submitting or updating answer",
+      error: error.message,
+    });
   }
 };
 
-module.exports = { submitAnswer };
+module.exports = { submitOrUpdateAnswer };

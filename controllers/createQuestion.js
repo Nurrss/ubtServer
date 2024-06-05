@@ -7,7 +7,7 @@ const createQuestionWithOptions = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { question, image, options, type, topicId } = req.body;
+    const { question, image, options, type, topicId, language } = req.body;
 
     const createdOptions = [];
     let correctOptionsIds = [];
@@ -45,12 +45,17 @@ const createQuestionWithOptions = async (req, res) => {
       point: ball,
       type,
       correctOptions: correctOptionsIds,
+      language,
     });
 
     await newQuestion.save({ session });
 
     const topic = await Topics.findById(topicId);
-    topic.questions.push(newQuestion._id);
+    if (language === "ru") {
+      topic.ru_questions.push(newQuestion._id);
+    } else if (language === "kz") {
+      topic.kz_questions.push(newQuestion._id);
+    }
     await topic.save({ session });
 
     await session.commitTransaction();

@@ -8,7 +8,7 @@ const {
   registerStudentsFromUrl,
 } = require("../controllers/excelRegisterController");
 const { studentStartsExam } = require("../controllers/studentStartsExam");
-const { submitAnswer } = require("../controllers/submitAnswer");
+const { submitOrUpdateAnswer } = require("../controllers/submitAnswer");
 const { getResultForStudent } = require("../controllers/GetResultForStudent");
 
 const student = new ApiOptimizer(Students);
@@ -177,7 +177,7 @@ const modelName = "Students";
  *                   type: string
  *                   description: The ID of the result created for the student's exam
  *
- * /students/submitAnswer:
+ * /students/submitOrUpdateAnswer:
  *   post:
  *     tags: [Students]
  *     summary: Submit an answer for a question in an exam
@@ -335,7 +335,7 @@ router.route("/:id").put(async (req, res) => {
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/excel", registerStudentsFromUrl);
 router.post("/startExam", studentStartsExam);
-router.post("/submitAnswer", submitAnswer);
+router.post("/submitOrUpdateAnswer", submitOrUpdateAnswer);
 router.post("/getResult", getResultForStudent);
 
 module.exports = router;

@@ -11,26 +11,24 @@ const modelName = "Topics";
 
 const AddTopicToSubject = async (req, res) => {
   try {
-    const { title, subjectId } = req.body;
+    const { kz_title, rus_title, subjectId } = req.body;
 
     if (!subjectId) {
       return res.status(400).json({ message: "Subject ID is required" });
     }
 
-    const subject = await Subjects.findById(subjectId);
-    if (!subject) {
-      return res.status(404).json({ message: "Subject not found" });
-    }
-
-    const newTopic = new Topics({ title });
+    const newTopic = new Topics({ kz_title, rus_title });
     const savedTopic = await newTopic.save();
 
-    subject.topics.push(savedTopic._id);
-    await subject.save();
+    // Update the subject to include the new topic
+    await Subjects.findByIdAndUpdate(subjectId, {
+      $push: { topics: savedTopic._id },
+    });
 
-    res
-      .status(201)
-      .json({ message: "Topic added successfully", topic: savedTopic });
+    res.status(201).json({
+      message: "Topic added successfully",
+      topic: savedTopic,
+    });
   } catch (err) {
     errorHandler(err, req, res);
   }

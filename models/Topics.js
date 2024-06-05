@@ -2,8 +2,10 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const TopicsSchema = new Schema({
-  title: String,
-  questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
+  kz_title: { type: String, require: true },
+  rus_title: { type: String, require: true },
+  kz_questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
+  ru_questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
 });
 
 module.exports = mongoose.model("Topics", TopicsSchema);

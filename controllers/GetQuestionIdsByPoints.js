@@ -1,35 +1,36 @@
+const mongoose = require("mongoose");
 const Topic = require("../models/Topics");
 
 async function getTopicsWithQuestionCount() {
   return Topic.aggregate([
     {
       $lookup: {
-        from: "questions", // The collection to join
-        localField: "questions", // Field from the input documents
-        foreignField: "_id", // Field from the documents of the "from" collection
-        as: "questionsInfo", // Output array field
+        from: "questions",
+        localField: "ru_questions",
+        foreignField: "_id",
+        as: "ruQuestionsInfo",
+      },
+    },
+    {
+      $lookup: {
+        from: "questions",
+        localField: "kz_questions",
+        foreignField: "_id",
+        as: "kzQuestionsInfo",
       },
     },
     {
       $project: {
         title: 1,
-        questionsInfo: {
-          $filter: {
-            input: "$questionsInfo",
-            as: "question",
-            cond: { $in: ["$$question.type", ["twoPoints", "onePoint"]] }, // Filters to only include necessary types
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        title: 1,
-        twoPointsQuestionIds: {
+        kz_title: 1,
+        rus_title: 1,
+        ruQuestionsInfo: 1,
+        kzQuestionsInfo: 1,
+        ru_twoPointsQuestionIds: {
           $map: {
             input: {
               $filter: {
-                input: "$questionsInfo",
+                input: "$ruQuestionsInfo",
                 as: "question",
                 cond: { $eq: ["$$question.type", "twoPoints"] },
               },
@@ -38,11 +39,37 @@ async function getTopicsWithQuestionCount() {
             in: "$$question._id",
           },
         },
-        onePointQuestionIds: {
+        ru_onePointQuestionIds: {
           $map: {
             input: {
               $filter: {
-                input: "$questionsInfo",
+                input: "$ruQuestionsInfo",
+                as: "question",
+                cond: { $eq: ["$$question.type", "onePoint"] },
+              },
+            },
+            as: "question",
+            in: "$$question._id",
+          },
+        },
+        kz_twoPointsQuestionIds: {
+          $map: {
+            input: {
+              $filter: {
+                input: "$kzQuestionsInfo",
+                as: "question",
+                cond: { $eq: ["$$question.type", "twoPoints"] },
+              },
+            },
+            as: "question",
+            in: "$$question._id",
+          },
+        },
+        kz_onePointQuestionIds: {
+          $map: {
+            input: {
+              $filter: {
+                input: "$kzQuestionsInfo",
                 as: "question",
                 cond: { $eq: ["$$question.type", "onePoint"] },
               },

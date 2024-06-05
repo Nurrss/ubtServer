@@ -42,8 +42,6 @@ app.use(express.json());
 const specs = swaggerJsdoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-checkExamStatus();
-
 app.use(morgan("common"));
 app.use(cookieParser());
 app.use(cors());

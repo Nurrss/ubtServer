@@ -5,11 +5,12 @@ const Subjects = require("../models/Subjects");
 const adminCreatesExamWithAllSubjects = async (req, res) => {
   try {
     const { started_at, finished_at } = req.body;
-    const allSubjects = await Subjects.find();
-    const allSubjectIds = allSubjects.map((subject) => subject._id);
 
+    // Retrieve all subjects with their associated topics
+    const allSubjects = await Subjects.find();
+    console.log(allSubjects);
     const newExam = new Exams({
-      subjects: allSubjectIds,
+      subjects: allSubjects,
       startedAt: new Date(started_at),
       finishedAt: new Date(finished_at),
     });

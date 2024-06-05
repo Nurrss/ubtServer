@@ -23,6 +23,11 @@ const QuestionsSchema = new Schema({
       required: true,
     },
   ],
+  language: {
+    type: String,
+    required: true,
+    enum: ["kz", "ru"],
+  },
 });
 
 module.exports = mongoose.model("Questions", QuestionsSchema);
