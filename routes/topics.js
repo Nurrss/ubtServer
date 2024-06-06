@@ -60,7 +60,6 @@ const modelName = "Topics";
  *                 type: array
  *                 items:
  *                   $ref: '#/components/schemas/Topic'
- *
  *     post:
  *       tags:
  *         - Topics
@@ -107,7 +106,6 @@ const modelName = "Topics";
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/Topic'
- *
  *     put:
  *       tags:
  *         - Topics
@@ -138,7 +136,6 @@ const modelName = "Topics";
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/Topic'
- *
  *     delete:
  *       tags:
  *         - Topics

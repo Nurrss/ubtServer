@@ -34,11 +34,11 @@ const modelName = "Students";
  *           type: array
  *           items:
  *             type: string
- *           description: Array of result IDs associated with the student.
+ *           description: Array of result IDs associated with the successful exam submissions of the student.
  *         inn:
  *           type: string
  *           description: The Individual Taxpayer Identification Number of the student.
-
+ *
  * paths:
  *   /students:
  *     get:
@@ -71,7 +71,7 @@ const modelName = "Students";
  *             application/json:
  *               schema:
  *                 $ref: '#/components/schemas/Student'
-
+ *
  *   /students/{id}:
  *     get:
  *       tags:
@@ -122,6 +122,217 @@ const modelName = "Students";
  *       responses:
  *         200:
  *           description: Student deleted successfully.
+ *
+ *   /students/excel:
+ *     post:
+ *       tags:
+ *         - Students
+ *       summary: Register students from an Excel file.
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fileUrl:
+ *                   type: string
+ *                   description: URL of the Excel file to register students from.
+ *       responses:
+ *         201:
+ *           description: Students registered successfully from Excel.
+ *         400:
+ *           description: Error occurred during registration.
+ *
+ *   /students/startExam:
+ *     post:
+ *       tags:
+ *         - Students
+ *       summary: Student starts an exam.
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 examId:
+ *                   type: string
+ *                   description: The ID of the exam to start.
+ *                 selectedSubjectIds:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: List of subject IDs selected for the exam.
+ *                 studentId:
+ *                   type: string
+ *                   description: The ID of the student starting the exam.
+ *       responses:
+ *         200:
+ *           description: Exam started successfully for the student.
+ *         400:
+ *           description: Error starting the exam.
+ */
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Result:
+ *       type: object
+ *       properties:
+ *         exam:
+ *           type: string
+ *           description: The ID of the exam
+ *         student:
+ *           type: string
+ *           description: The ID of the student
+ *         subjects:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The name of the subject
+ *               results:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     questionNumber:
+ *                       type: integer
+ *                       description: The number of the question
+ *                     isCcorrect:
+ *                       type: boolean
+ *                       description: Indicates whether the answer is correct
+ *               totalPoints:
+ *                 type: number
+ *                 description: Total points obtained in the subject
+ *               totalCorrect:
+ *                 type: number
+ *                 description: Total correct answers in the subject
+ *               totalIncorrect:
+ *                 type: number
+ *                 description: Total incorrect answers in the subject
+ *               percent:
+ *                 type: string
+ *                 description: Percentage score in the subject
+ *         overallScore:
+ *           type: number
+ *           description: Overall score obtained in the exam
+ *         totalCorrect:
+ *           type: number
+ *           description: Total correct answers in the exam
+ *         totalIncorrect:
+ *           type: number
+ *           description: Total incorrect answers in the exam
+ *         overallPercent:
+ *           type: string
+ *           description: Overall percentage score in the exam
+ *
+ * paths:
+ *   /students/getResult:
+ *     post:
+ *       tags:
+ *         - Students
+ *       summary: Retrieve the results for a student for a specific exam
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 examId:
+ *                   type: string
+ *                   description: The ID of the exam to retrieve results for
+ *                 studentId:
+ *                   type: string
+ *                   description: The ID of the student to retrieve results for
+ *       responses:
+ *         200:
+ *           description: Detailed information about the student's results
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Result'
+ *         404:
+ *           description: Results not found
+ *         400:
+ *           description: Error retrieving results
+ */
+/**
+ * @swagger
+ * paths:
+ *   /submitOrUpdateAnswer:
+ *     post:
+ *       tags:
+ *         - Students
+ *       summary: Submit or update an answer for a question during an exam
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required:
+ *                 - examId
+ *                 - studentId
+ *                 - subjectName
+ *                 - questionId
+ *                 - optionIds
+ *                 - questionNumber
+ *                 - language
+ *               properties:
+ *                 examId:
+ *                   type: string
+ *                   description: The ID of the exam
+ *                 studentId:
+ *                   type: string
+ *                   description: The ID of the student
+ *                 subjectName:
+ *                   type: string
+ *                   description: The name of the subject
+ *                 questionId:
+ *                   type: string
+ *                   description: The ID of the question to be answered
+ *                 optionIds:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of IDs of selected options
+ *                 questionNumber:
+ *                   type: integer
+ *                   description: The sequential number of the question in the subject
+ *                 language:
+ *                   type: string
+ *                   description: Language of the question (e.g., 'ru', 'kz')
+ *       responses:
+ *         200:
+ *           description: Answer submitted or updated successfully
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     description: Success message
+ *                   result:
+ *                     $ref: '#/components/schemas/Result'
+ *         400:
+ *           description: Error in submitting or updating the answer
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+ *                     description: Error message
+ *                   error:
+ *                     type: string
+ *                     description: Detailed error message
  */
 
 router.route("/").get(async (req, res) => {
