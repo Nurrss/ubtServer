@@ -137,6 +137,7 @@ router.post("/add", async (req, res) => {
       email,
       password: hashedPassword,
       role: "student",
+      inn: inn,
     });
 
     const savedUser = await newUser.save();

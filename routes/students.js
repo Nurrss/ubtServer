@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const _ = require("lodash");
+const bcrypt = require("bcrypt");
+const { hashConstance, ROLES } = require("../enums");
 
 const Students = require("../models/Students");
+const Users = require("../models/Users");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const {
@@ -12,6 +15,7 @@ const { submitOrUpdateAnswer } = require("../controllers/submitAnswer");
 const { getResultForStudent } = require("../controllers/GetResultForStudent");
 
 const student = new ApiOptimizer(Students);
+const user = new ApiOptimizer(Users);
 const modelName = "Students";
 
 /**
@@ -373,8 +377,10 @@ router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
     const { password, inn } = req.body;
-    const fieldsToUpdate = { inn, password };
-    await student.updateById({ entityId, fieldsToUpdate, req, res });
+    const hashedPassword = await bcrypt.hash(password, hashConstance);
+
+    const fieldsToUpdate = { inn, password: hashedPassword };
+    await user.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
   }

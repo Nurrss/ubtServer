@@ -15,10 +15,9 @@ const handleLogin = async (req, res) => {
   }
 
   const foundUser = await Users.findOne({ email: email }).exec();
-  console.log(password);
-  console.log(foundUser);
+  // console.log(password);
+  // console.log(foundUser);
 
-  //Unauthorized
   if (!foundUser) {
     return res.status(404).json({
       message: "User email is not found. Invalid login credentials.",
@@ -29,7 +28,6 @@ const handleLogin = async (req, res) => {
   const isMatch = await bcrypt.compare(password, foundUser.password);
   if (isMatch) {
     const { email, role, _id } = foundUser;
-    // create JWTs
     const accessToken = jwt.sign(
       { email: email },
       process.env.ACCESS_TOKEN_SECRET,
