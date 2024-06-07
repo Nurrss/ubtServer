@@ -11,13 +11,13 @@ const modelName = "Topics";
 
 const AddTopicToSubject = async (req, res) => {
   try {
-    const { kz_title, rus_title, subjectId } = req.body;
+    const { kz_title, ru_title, subjectId } = req.body;
 
     if (!subjectId) {
       return res.status(400).json({ message: "Subject ID is required" });
     }
 
-    const newTopic = new Topics({ kz_title, rus_title });
+    const newTopic = new Topics({ kz_title, ru_title });
     const savedTopic = await newTopic.save();
 
     // Update the subject to include the new topic
