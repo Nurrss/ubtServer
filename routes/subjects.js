@@ -155,7 +155,7 @@ router.route("/:id").get(async (req, res) => {
   try {
     const subject = await Subjects.findById(req.params.id).populate({
       path: "topics",
-      select: "title",
+      select: "ru_title kz_title",
     });
 
     if (!subject) {

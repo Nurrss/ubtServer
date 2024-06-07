@@ -2,11 +2,16 @@ const router = require("express").Router();
 const _ = require("lodash");
 
 const Teachers = require("../models/Teachers");
+const Users = require("../models/Users");
 const Classes = require("../models/Classes");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
+const Subjects = require("../models/Subjects");
 
 const teacher = new ApiOptimizer(Teachers);
+const user = new ApiOptimizer(Users);
+const classes = new ApiOptimizer(Classes);
+const subject = new ApiOptimizer(Subjects);
 const modelName = "Teacher";
 
 /**
@@ -196,9 +201,38 @@ router.route("/:id").get(async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { name, email, password, classes, literal } = req.body;
-    const fieldsToUpdate = { name, email, password, classes, literal };
-    await teacher.updateById({ entityId, fieldsToUpdate, req, res });
+    const {
+      name,
+      surname,
+      classId,
+      subjectId,
+      className,
+      kz_subject,
+      ru_subject,
+      email,
+    } = req.body;
+
+    // Обновление данных пользователя (name, surname)
+    await user.updateById({
+      classId,
+      fieldsToUpdate: { name, surname, email },
+      req,
+      res,
+    });
+    await classes.updateById({
+      entityId,
+      fieldsToUpdate: { class: className },
+      req,
+      res,
+    });
+    await subject.updateById({
+      subjectId,
+      fieldsToUpdate: { kz_subject, ru_subject },
+      req,
+      res,
+    });
+
+    res.status(200).json({ message: "Teacher updated successfully" });
   } catch (err) {
     errorHandler(err, req, res);
   }
