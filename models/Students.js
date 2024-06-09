@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const StudentsSchema = new Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
   class: { type: mongoose.Schema.Types.ObjectId, ref: "Classes" },
-  results: [{ type: mongoose.Schema.Types.ObjectId, ref: "ResultsSchema" }],
+  results: [{ type: mongoose.Schema.Types.ObjectId, ref: "Results" }],
   inn: { type: String },
 });
 

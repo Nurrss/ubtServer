@@ -12,11 +12,6 @@ const studentStartsExam = async (req, res) => {
       exam: examId,
       student: studentId,
     });
-    if (existingResult) {
-      return res
-        .status(400)
-        .json({ message: "You have already started this exam." });
-    }
 
     const exam = await Exams.findById(examId).populate({
       path: "subjects",
@@ -30,7 +25,7 @@ const studentStartsExam = async (req, res) => {
       },
     });
 
-    if (!exam || !exam.subjects) {
+    if (!exam || !exam.subjects || exam.subjects.length === 0) {
       return res.status(404).json({ message: "Exam or subjects not found" });
     }
 
@@ -57,6 +52,26 @@ const studentStartsExam = async (req, res) => {
       }
     });
 
+    // Ensure we only keep the selected subjects in the response
+    questionsBySubject = selectedSubjectIds.reduce((obj, id) => {
+      const subject = exam.subjects.find(
+        (subject) => subject._id.toString() === id
+      );
+      if (subject && questionsBySubject[subject[language + "_subject"]]) {
+        obj[subject[language + "_subject"]] =
+          questionsBySubject[subject[language + "_subject"]];
+      }
+      return obj;
+    }, {});
+
+    if (existingResult) {
+      return res.status(200).json({
+        message: "You have already started this exam.",
+        questionsBySubject,
+        resultId: existingResult._id,
+      });
+    }
+
     const result = new Results({
       exam: examId,
       student: studentId,
@@ -80,6 +95,7 @@ const studentStartsExam = async (req, res) => {
     await exam.save();
 
     res.status(200).json({ questionsBySubject, resultId: result._id });
+    console.log(questionsBySubject);
   } catch (error) {
     console.error("Error starting exam:", error);
     res
@@ -87,5 +103,4 @@ const studentStartsExam = async (req, res) => {
       .json({ message: "Error starting exam", error: error.message });
   }
 };
-
 module.exports = { studentStartsExam };

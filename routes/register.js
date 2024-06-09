@@ -69,8 +69,7 @@ router.post("/teacher", async (req, res) => {
       email,
       literal,
       classNum,
-      kz_subjectName,
-      ru_subjectName,
+      subjectId,
       role,
       password,
     } = req.body;
@@ -118,10 +117,11 @@ router.post("/teacher", async (req, res) => {
       classForTeacher = await newClass.save();
     }
 
-    let subject = await Subjects.findOne({ kz_subject: kz_subjectName, ru_subject:ru_subjectName });
+    let subject = await Subjects.findOne({ _id: subjectId });
     if (!subject) {
-      subject = new Subjects({ kz_subject: kz_subjectName, ru_subject: ru_subjectName });
-      subject = await subject.save();
+      return res
+        .status(400)
+        .json({ message: "Subject is not found.", success: false });
     }
 
     const newTeacher = new Teachers({
