@@ -33,7 +33,10 @@ const studentStartsExam = async (req, res) => {
     let globalQuestionNumber = 1;
 
     exam.subjects.forEach((subject) => {
-      if (subject.topics) {
+      if (
+        selectedSubjectIds.includes(subject._id.toString()) &&
+        subject.topics
+      ) {
         const questions = subject.topics.flatMap((topic) =>
           topic[language + "_questions"]
             ? topic[language + "_questions"].map((question) => ({
