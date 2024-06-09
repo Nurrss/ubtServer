@@ -29,43 +29,35 @@ const studentStartsExam = async (req, res) => {
       return res.status(404).json({ message: "Exam or subjects not found" });
     }
 
-    let questionsBySubject = {};
-    let questionNumber = 1;
+    let questionsBySubject = [];
+    let globalQuestionNumber = 1;
 
     exam.subjects.forEach((subject) => {
       if (subject.topics) {
-        questionsBySubject[subject._id] = {
+        const questions = subject.topics.flatMap((topic) =>
+          topic[language + "_questions"]
+            ? topic[language + "_questions"].map((question) => ({
+                _id: question._id,
+                questionNumber: globalQuestionNumber++,
+                question: question.question,
+                image: question.image,
+                options: question.options.map((option) => ({
+                  _id: option._id,
+                  text: option.text,
+                })),
+                point: question.point,
+                type: question.type,
+              }))
+            : []
+        );
+
+        questionsBySubject.push({
+          id: subject._id,
           subjectName: subject[language + "_subject"],
-          questions: subject.topics.flatMap((topic) =>
-            topic[language + "_questions"]
-              ? topic[language + "_questions"].map((question) => ({
-                  _id: question._id,
-                  questionNumber: questionNumber++, // Increment question number globally
-                  question: question.question,
-                  image: question.image,
-                  options: question.options.map((option) => ({
-                    _id: option._id,
-                    text: option.text,
-                  })),
-                  point: question.point,
-                  type: question.type,
-                }))
-              : []
-          ),
-        };
+          questions: questions,
+        });
       }
     });
-
-    // Ensure we only keep the selected subjects in the response
-    questionsBySubject = selectedSubjectIds.reduce((obj, id) => {
-      const subject = exam.subjects.find(
-        (subject) => subject._id.toString() === id
-      );
-      if (subject && questionsBySubject[subject._id]) {
-        obj[subject._id] = questionsBySubject[subject._id];
-      }
-      return obj;
-    }, {});
 
     if (existingResult) {
       return res.status(200).json({
@@ -78,8 +70,8 @@ const studentStartsExam = async (req, res) => {
     const result = new Results({
       exam: examId,
       student: studentId,
-      subjects: Object.keys(questionsBySubject).map((subjectId) => ({
-        name: questionsBySubject[subjectId].subjectName,
+      subjects: questionsBySubject.map((subject) => ({
+        name: subject.subjectName,
         results: [],
         totalPoints: 0,
         totalCorrect: 0,
