@@ -20,10 +20,18 @@ async function getTopicsWithQuestionCount() {
       },
     },
     {
+      $addFields: {
+        debug: {
+          kz_title: "$kz_title",
+          ru_title: "$ru_title",
+        },
+      },
+    },
+    {
       $project: {
         title: 1,
         kz_title: 1,
-        rus_title: 1,
+        ru_title: 1,
         ruQuestionsInfo: 1,
         kzQuestionsInfo: 1,
         ru_twoPointsQuestionIds: {

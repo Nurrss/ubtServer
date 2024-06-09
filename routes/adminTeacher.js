@@ -259,8 +259,6 @@ router.get("/", async (req, res) => {
       .populate("class", "class literal")
       .populate("subject", "kz_subject ru_subject");
 
-    console.log("Populated Teachers:", teachers);
-
     if (!teachers.length) {
       return res.status(200).json([]);
     }
@@ -277,7 +275,6 @@ router.get("/", async (req, res) => {
       email: teacher.user.email,
     }));
 
-    console.log("Teachers List:", teachersList);
     res.status(200).json(teachersList);
   } catch (err) {
     console.error("Error retrieving teachers:", err);
