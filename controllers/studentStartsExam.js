@@ -30,14 +30,17 @@ const studentStartsExam = async (req, res) => {
     }
 
     let questionsBySubject = {};
+    let questionNumber = 1;
+
     exam.subjects.forEach((subject) => {
       if (subject.topics) {
-        questionsBySubject[subject[language + "_subject"]] =
-          subject.topics.flatMap((topic) =>
+        questionsBySubject[subject._id] = {
+          subjectName: subject[language + "_subject"],
+          questions: subject.topics.flatMap((topic) =>
             topic[language + "_questions"]
-              ? topic[language + "_questions"].map((question, index) => ({
+              ? topic[language + "_questions"].map((question) => ({
                   _id: question._id,
-                  questionNumber: index + 1,
+                  questionNumber: questionNumber++, // Increment question number globally
                   question: question.question,
                   image: question.image,
                   options: question.options.map((option) => ({
@@ -48,7 +51,8 @@ const studentStartsExam = async (req, res) => {
                   type: question.type,
                 }))
               : []
-          );
+          ),
+        };
       }
     });
 
@@ -57,9 +61,8 @@ const studentStartsExam = async (req, res) => {
       const subject = exam.subjects.find(
         (subject) => subject._id.toString() === id
       );
-      if (subject && questionsBySubject[subject[language + "_subject"]]) {
-        obj[subject[language + "_subject"]] =
-          questionsBySubject[subject[language + "_subject"]];
+      if (subject && questionsBySubject[subject._id]) {
+        obj[subject._id] = questionsBySubject[subject._id];
       }
       return obj;
     }, {});
@@ -75,8 +78,8 @@ const studentStartsExam = async (req, res) => {
     const result = new Results({
       exam: examId,
       student: studentId,
-      subjects: Object.keys(questionsBySubject).map((subjectName) => ({
-        name: subjectName,
+      subjects: Object.keys(questionsBySubject).map((subjectId) => ({
+        name: questionsBySubject[subjectId].subjectName,
         results: [],
         totalPoints: 0,
         totalCorrect: 0,
@@ -103,4 +106,5 @@ const studentStartsExam = async (req, res) => {
       .json({ message: "Error starting exam", error: error.message });
   }
 };
+
 module.exports = { studentStartsExam };
