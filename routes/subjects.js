@@ -6,6 +6,7 @@ const Topics = require("../models/Topics");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
+const { getSubjectById } = require("../controllers/getSubjectById");
 
 const subjects = new ApiOptimizer(Subjects);
 const modelName = "Subjects";
@@ -151,23 +152,7 @@ router.route("/:id").delete(async (req, res) => {
   }
 });
 
-router.route("/:id").get(async (req, res) => {
-  try {
-    const subject = await Subjects.findById(req.params.id).populate({
-      path: "topics",
-      select: "ru_title kz_title",
-    });
-
-    if (!subject) {
-      res.status(404).send({ message: "Subject not found" });
-      return;
-    }
-
-    res.json(subject);
-  } catch (err) {
-    errorHandler(err, req, res);
-  }
-});
+router.route("/:id").get(getSubjectById);
 
 router.route("/:id").put(async (req, res) => {
   try {
