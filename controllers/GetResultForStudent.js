@@ -7,7 +7,7 @@ const getResultForStudent = async (req, res) => {
   try {
     // Log request details
     console.log("Request details:", { examId, studentId });
-
+    // asdf
     const allResults = await Results.find({ exam: examId })
       .sort({ overallScore: -1 })
       .populate({

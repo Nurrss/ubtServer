@@ -48,8 +48,4 @@ const UsersSchema = new Schema(
   { timestamps: true, get: (time) => time.toDateString() }
 );
 
-UsersSchema.methods.isValidRefreshToken = function (providedRefreshToken) {
-  return this.refreshToken === providedRefreshToken;
-};
-
 module.exports = mongoose.model("Users", UsersSchema);

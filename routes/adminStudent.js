@@ -241,16 +241,22 @@ router.route("/").get(async (req, res) => {
 
     const studentsList = students.map((student) => ({
       id: student._id,
-      name: student.user.name,
-      surname: student.user.surname,
-      group: `${student.class.class}${student.class.literal}`,
+      name: student.user ? student.user.name : null,
+      surname: student.user ? student.user.surname : null,
+      group: student.class
+        ? `${student.class.class}${student.class.literal}`
+        : null,
       inn: student.inn,
-      email: student.user.email,
+      email: student.user ? student.user.email : null,
     }));
 
+    console.log(studentsList);
     res.status(200).json(studentsList);
   } catch (err) {
-    errorHandler(err, req, res);
+    console.error("Error retrieving students:", err);
+    res
+      .status(500)
+      .json({ message: "Error retrieving students", error: err.message });
   }
 });
 
