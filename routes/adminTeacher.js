@@ -115,7 +115,7 @@ const Teachers = require("../models/Teachers");
 
 router.post("/add", async (req, res) => {
   try {
-    const { name, surname, email, literal, classNum, subjectName } = req.body;
+    const { name, surname, email, literal, classNum, subjectId } = req.body;
 
     const hash = await bcrypt.hash(`${name + "123" + surname}`, hashConstance);
 
@@ -129,6 +129,12 @@ router.post("/add", async (req, res) => {
         message: "Email is already registered.",
         success: false,
       });
+    }
+    let subject = await Subjects.findOne({ subject: subjectId });
+    if (!subject) {
+      return res
+        .status(400)
+        .json({ message: "Subject is not found.", success: false });
     }
 
     const newUser = new Users({
@@ -153,12 +159,6 @@ router.post("/add", async (req, res) => {
         students: [],
       });
       classForTeacher = await newClass.save();
-    }
-
-    let subject = await Subjects.findOne({ subject: subjectName });
-    if (!subject) {
-      subject = new Subjects({ subject: subjectName });
-      subject = await subject.save();
     }
 
     const newTeacher = new Teachers({

@@ -93,6 +93,13 @@ router.post("/teacher", async (req, res) => {
       });
     }
 
+    let subject = await Subjects.findOne({ _id: subjectId });
+    if (!subject) {
+      return res
+        .status(400)
+        .json({ message: "Subject is not found.", success: false });
+    }
+
     const newUser = new Users({
       name,
       surname,
@@ -115,13 +122,6 @@ router.post("/teacher", async (req, res) => {
         students: [],
       });
       classForTeacher = await newClass.save();
-    }
-
-    let subject = await Subjects.findOne({ _id: subjectId });
-    if (!subject) {
-      return res
-        .status(400)
-        .json({ message: "Subject is not found.", success: false });
     }
 
     const newTeacher = new Teachers({
