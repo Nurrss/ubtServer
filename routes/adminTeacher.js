@@ -116,6 +116,7 @@ const Teachers = require("../models/Teachers");
 router.post("/add", async (req, res) => {
   try {
     const { name, surname, email, literal, classNum, subjectId } = req.body;
+    console.log(subjectId);
 
     const hash = await bcrypt.hash(`${name + "123" + surname}`, hashConstance);
 
@@ -130,7 +131,8 @@ router.post("/add", async (req, res) => {
         success: false,
       });
     }
-    let subject = await Subjects.findOne({ subject: subjectId });
+    let subject = await Subjects.findOne({ _id: subjectId });
+    console.log(subject);
     if (!subject) {
       return res
         .status(400)
