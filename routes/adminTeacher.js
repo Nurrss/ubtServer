@@ -255,26 +255,35 @@ router.get("/:id", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const teachers = await Teachers.find()
-      .populate("user", "name surname email") // Simplified populate for user
-      .populate("class", "class literal") // Simplified populate for class
-      .populate("subject", "subject"); // Simplified populate for subject
+      .populate("user", "name surname email")
+      .populate("class", "class literal")
+      .populate("subject", "kz_subject ru_subject");
+
+    console.log("Populated Teachers:", teachers);
 
     if (!teachers.length) {
-      return res.status(200).json([]); // Send an empty array if no teachers found
+      return res.status(200).json([]);
     }
 
     const teachersList = teachers.map((teacher) => ({
       id: teacher._id,
       name: teacher.user.name,
       surname: teacher.user.surname,
-      group: `${teacher.class.class}${teacher.class.literal}`,
-      subject: teacher.subject ? teacher.subject.subject : "No subject", // Ensure we have a subject before accessing its name
+      group: teacher.class
+        ? `${teacher.class.class}${teacher.class.literal}`
+        : "No class",
+      kz_subject: teacher.subject ? teacher.subject.kz_subject : "No subject",
+      ru_subject: teacher.subject ? teacher.subject.ru_subject : "No subject",
       email: teacher.user.email,
     }));
 
+    console.log("Teachers List:", teachersList);
     res.status(200).json(teachersList);
   } catch (err) {
-    errorHandler(err, req, res);
+    console.error("Error retrieving teachers:", err);
+    res
+      .status(500)
+      .json({ message: "Error retrieving teachers", error: err.message });
   }
 });
 
