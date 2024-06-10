@@ -13,6 +13,12 @@ const studentStartsExam = async (req, res) => {
       student: studentId,
     });
 
+    if (existingResult) {
+      return res.status(200).json({
+        message: "You have already started this exam.",
+      });
+    }
+
     const exam = await Exams.findById(examId).populate({
       path: "subjects",
       match: { _id: { $in: selectedSubjectIds.map((id) => new ObjectId(id)) } },
@@ -61,14 +67,6 @@ const studentStartsExam = async (req, res) => {
         });
       }
     });
-
-    if (existingResult) {
-      return res.status(200).json({
-        message: "You have already started this exam.",
-        questionsBySubject,
-        resultId: existingResult._id,
-      });
-    }
 
     const result = new Results({
       exam: examId,
