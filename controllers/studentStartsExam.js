@@ -36,9 +36,9 @@ const studentStartsExam = async (req, res) => {
     }
 
     let questionsBySubject = [];
-    let globalQuestionNumber = 1;
 
     exam.subjects.forEach((subject) => {
+      let localQuestionNumber = 1; // Reset question number for each subject
       if (
         selectedSubjectIds.includes(subject._id.toString()) &&
         subject.topics
@@ -47,7 +47,7 @@ const studentStartsExam = async (req, res) => {
           topic[language + "_questions"]
             ? topic[language + "_questions"].map((question) => ({
                 _id: question._id,
-                questionNumber: globalQuestionNumber++,
+                questionNumber: localQuestionNumber++,
                 question: question.question,
                 image: question.image,
                 options: question.options.map((option) => ({
