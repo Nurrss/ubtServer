@@ -4,7 +4,6 @@ const _ = require("lodash");
 const Options = require("../models/Options");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const checkTeacher = require("../middleware/checkTeacher");
 
 const options = new ApiOptimizer(Options);
 const modelName = "Options";

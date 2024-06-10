@@ -15,6 +15,7 @@ const studentRoute = require("./routes/students");
 const teacherRoute = require("./routes/teachers");
 const logoutRoute = require("./routes/logout");
 const registerRoute = require("./routes/register");
+const optionRoute = require("./routes/options");
 const questionRoute = require("./routes/questions");
 const topicRoute = require("./routes/topics");
 const examRoute = require("./routes/exams");
@@ -52,6 +53,7 @@ app.use("/auth", authRoute);
 // authorized routes
 app.use("/students", studentRoute);
 app.use("/exams", examRoute);
+app.use("/option", optionRoute);
 app.use("/teachers", teacherRoute);
 app.use("/question", questionRoute);
 app.use("/results", resultsRoute);
