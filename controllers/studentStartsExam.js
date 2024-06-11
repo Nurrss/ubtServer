@@ -14,7 +14,7 @@ const studentStartsExam = async (req, res) => {
     });
 
     if (existingResult) {
-      return res.status(200).json({
+      return res.status(400).json({
         message: "You have already started this exam.",
       });
     }
