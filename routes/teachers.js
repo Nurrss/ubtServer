@@ -181,7 +181,7 @@ router.route("/").get(async (req, res) => {
     errorHandler(err, req, res);
   }
 });
-
+//done
 router.route("/:id").delete(async (req, res) => {
   try {
     const teacher = await Teachers.findById(req.params.id);

@@ -18,7 +18,7 @@ TeachersSchema.pre(
 
       await Classes.updateMany(
         { teacher: this._id },
-        { $unset: { teacher: "" } }
+        { $pull: { teacher: this._id } }
       );
 
       next();

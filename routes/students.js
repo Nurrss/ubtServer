@@ -357,13 +357,13 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    await student.deleteOne();
+    await student.deleteOne(); // Убедитесь, что используется метод deleteOne
 
     res
       .status(200)
       .json({ message: "Student and related data deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    errorHandler(err, req, res); // Используйте middleware для обработки ошибок
   }
 });
 

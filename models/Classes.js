@@ -11,14 +11,14 @@ const ClassesSchema = new Schema({
     type: String,
   },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Students" }],
-  teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teachers" },
+  teacher: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teachers" }],
 });
 
 ClassesSchema.pre("deleteOne", async function (next) {
   try {
-    await Students.deleteMany({ class: this._id });
-
-    await Teachers.updateMany({ class: this._id }, { $unset: { class: "" } });
+    const classId = this._id;
+    await Students.deleteMany({ class: classId });
+    await Teachers.updateMany({ class: classId }, { $unset: { class: "" } });
 
     next();
   } catch (err) {

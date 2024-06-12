@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Topics = require("./Topics");
 const Options = require("./Options");
 
 const QuestionsSchema = new Schema({
@@ -32,23 +31,28 @@ const QuestionsSchema = new Schema({
   },
 });
 
-QuestionsSchema.pre("deleteOne", async function (next) {
-  try {
-    await Topics.updateMany(
-      { kz_questions: this._id },
-      { $pull: { kz_questions: this._id } }
-    );
-    await Topics.updateMany(
-      { ru_questions: this._id },
-      { $pull: { ru_questions: this._id } }
-    );
+QuestionsSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      const Topics = require("./Topics");
+      await Topics.updateMany(
+        { kz_questions: this._id },
+        { $pull: { kz_questions: this._id } }
+      );
+      await Topics.updateMany(
+        { ru_questions: this._id },
+        { $pull: { ru_questions: this._id } }
+      );
 
-    await Options.deleteMany({ _id: { $in: this.options } });
+      await Options.deleteMany({ _id: { $in: this.options } });
 
-    next();
-  } catch (err) {
-    next(err);
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = mongoose.model("Questions", QuestionsSchema);
