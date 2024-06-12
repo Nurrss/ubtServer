@@ -1,3 +1,9 @@
+const mongoose = require("mongoose");
+const Exams = require("../models/Exams");
+const Subjects = require("../models/Subjects");
+const Questions = require("../models/Questions");
+const Results = require("../models/Results");
+
 const submitOrUpdateAnswer = async (req, res) => {
   const {
     examId,
