@@ -63,6 +63,7 @@ class Entity {
 
   async updateById({ entityId, fieldsToUpdate, req, res }) {
     try {
+      console.log(entityId);
       if (!entityId) throw new Error(EMPTY_ID_ERROR);
       if (!mongoose.Types.ObjectId.isValid(entityId))
         throw new Error(INVALID_ID_ERROR);

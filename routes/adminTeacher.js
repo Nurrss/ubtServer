@@ -5,8 +5,11 @@ const { hashConstance, ROLES } = require("../enums");
 const Users = require("../models/Users");
 const Classes = require("../models/Classes");
 const Subjects = require("../models/Subjects");
+const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const Teachers = require("../models/Teachers");
+const clases = new ApiOptimizer(Classes);
+const modelName = "Classes";
 
 /**
 @swagger
@@ -179,13 +182,14 @@ router.post("/add", async (req, res) => {
     errorHandler(err, req, res);
   }
 });
+
 router.put("/:id", async (req, res) => {
   const teacherId = req.params.id;
-  const { name, surname, email, subjectId } = req.body;
+  const { name, surname, email, subjectId, classNum, literal } = req.body;
 
   try {
-    // Find the existing teacher
     const teacher = await Teachers.findById(teacherId).populate("user");
+    console.log(teacher);
 
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
@@ -202,6 +206,20 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ message: "Associated user not found" });
     }
 
+    // Update Class details
+    const classId = teacher.class;
+    const existClass = await Classes.find({ literal, class: classNum });
+    if (existClass) {
+      return res
+        .status(400)
+        .json({ message: "This class or literal already exist" });
+    }
+    const updatedClass = await Classes.findByIdAndUpdate(classId, {
+      class: classNum,
+      literal,
+    });
+    updatedClass.save();
+
     // Update Subject
     if (subjectId) {
       const subject = await Subjects.findById(subjectId);
@@ -215,7 +233,9 @@ router.put("/:id", async (req, res) => {
     // Save updated teacher details
     await teacher.save();
 
-    res.status(200).json({ message: "Teacher updated successfully", teacher });
+    res
+      .status(200)
+      .json({ message: "Teacher and class updated successfully", teacher });
   } catch (err) {
     errorHandler(err, req, res);
   }
