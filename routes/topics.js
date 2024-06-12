@@ -183,7 +183,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Topic not found" });
     }
 
-    await topic.remove();
+    await topic.deleteOne();
 
     res.status(200).json({
       message: "Topic and related questions and options deleted successfully",

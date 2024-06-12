@@ -174,7 +174,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Exam not found" });
     }
 
-    await exam.remove();
+    await exam.deleteOne();
 
     res
       .status(200)

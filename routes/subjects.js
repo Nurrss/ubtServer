@@ -151,7 +151,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Subject not found" });
     }
 
-    await subject.remove();
+    await subject.deleteOne();
 
     res
       .status(200)

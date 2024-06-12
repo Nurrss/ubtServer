@@ -182,7 +182,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    await classToDelete.remove();
+    await classToDelete.deleteOne();
 
     res
       .status(200)

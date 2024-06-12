@@ -357,7 +357,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    await student.remove();
+    await student.deleteOne();
 
     res
       .status(200)

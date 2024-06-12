@@ -166,7 +166,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Result not found" });
     }
 
-    await result.remove();
+    await result.deleteOne();
 
     res
       .status(200)

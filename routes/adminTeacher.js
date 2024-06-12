@@ -291,7 +291,7 @@ router.route("/:id").delete(async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    await teacher.deleteOne(); // Используем deleteOne для удаления документа
+    await teacher.deleteOne();
 
     res
       .status(200)
