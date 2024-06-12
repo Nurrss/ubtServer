@@ -9,21 +9,25 @@ const TeachersSchema = new Schema({
   subject: { type: mongoose.Schema.Types.ObjectId, ref: "Subjects" },
 });
 
-TeachersSchema.pre("remove", async function (next) {
-  try {
-    // Удаление пользователя
-    await Users.findByIdAndDelete(this.user);
+TeachersSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      // Удаление пользователя
+      await Users.findByIdAndDelete(this.user);
 
-    // Удаление учителя из класса
-    await Classes.updateMany(
-      { teacher: this._id },
-      { $unset: { teacher: "" } }
-    );
+      // Удаление учителя из класса
+      await Classes.updateMany(
+        { teacher: this._id },
+        { $unset: { teacher: "" } }
+      );
 
-    next();
-  } catch (err) {
-    next(err);
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = mongoose.model("Teachers", TeachersSchema);

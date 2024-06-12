@@ -3,7 +3,7 @@ const Students = require("../models/Students");
 
 const getAllResultsForStudent = async (req, res) => {
   const { studentId } = req.body;
-
+  // fgsfdfds
   try {
     // Log request details
     console.log("Request details:", { studentId });
