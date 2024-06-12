@@ -20,7 +20,7 @@ const ExamsSchema = new Schema({
   amountOfPassed: { type: Number, default: 0 },
 });
 
-ExamsSchema.pre("remove", async function (next) {
+ExamsSchema.pre("deleteOne", async function (next) {
   try {
     await Results.deleteMany({ exam: this._id });
 

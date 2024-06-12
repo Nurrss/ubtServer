@@ -36,7 +36,7 @@ const ResultsSchema = new Schema(
   { timestamps: true }
 );
 
-ResultsSchema.pre("remove", async function (next) {
+ResultsSchema.pre("deleteOne", async function (next) {
   try {
     // Удаление результата из экзамена
     await Exams.updateMany(

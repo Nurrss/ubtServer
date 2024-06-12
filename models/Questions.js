@@ -32,7 +32,7 @@ const QuestionsSchema = new Schema({
   },
 });
 
-QuestionsSchema.pre("remove", async function (next) {
+QuestionsSchema.pre("deleteOne", async function (next) {
   try {
     await Topics.updateMany(
       { kz_questions: this._id },

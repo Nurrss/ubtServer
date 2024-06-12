@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Students = require("./Students");
+const Teachers = require("./Teachers");
 
 const ClassesSchema = new Schema({
   class: {
@@ -12,12 +14,10 @@ const ClassesSchema = new Schema({
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teachers" },
 });
 
-ClassesSchema.pre("remove", async function (next) {
+ClassesSchema.pre("deleteOne", async function (next) {
   try {
-    // Удаление всех студентов, связанных с этим классом
     await Students.deleteMany({ class: this._id });
 
-    // Очистка поля class у учителя
     await Teachers.updateMany({ class: this._id }, { $unset: { class: "" } });
 
     next();

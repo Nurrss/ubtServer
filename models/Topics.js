@@ -9,7 +9,7 @@ const TopicsSchema = new Schema({
   kz_questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
   ru_questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
 });
-TopicsSchema.pre("remove", async function (next) {
+TopicsSchema.pre("deleteOne", async function (next) {
   try {
     await Questions.deleteMany({ _id: { $in: this.kz_questions } });
     await Questions.deleteMany({ _id: { $in: this.ru_questions } });

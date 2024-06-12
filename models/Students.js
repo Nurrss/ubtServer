@@ -11,7 +11,7 @@ const StudentsSchema = new Schema({
   inn: { type: String },
 });
 
-StudentsSchema.pre("remove", async function (next) {
+StudentsSchema.pre("deleteOne", async function (next) {
   try {
     // Удаление всех результатов, связанных с этим учеником
     await Results.deleteMany({ student: this._id });

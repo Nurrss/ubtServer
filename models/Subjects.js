@@ -11,7 +11,7 @@ const SubjectsSchema = new Schema({
   ru_subject: { type: String, required: true },
 });
 
-SubjectsSchema.pre("remove", async function (next) {
+SubjectsSchema.pre("deleteOne", async function (next) {
   try {
     // Найти все темы, связанные с этим предметом
     const topics = await Topics.find({ _id: { $in: this.topics } });

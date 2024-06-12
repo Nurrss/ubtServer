@@ -14,10 +14,8 @@ TeachersSchema.pre(
   { document: true, query: false },
   async function (next) {
     try {
-      // Удаление пользователя
       await Users.findByIdAndDelete(this.user);
 
-      // Удаление учителя из класса
       await Classes.updateMany(
         { teacher: this._id },
         { $unset: { teacher: "" } }
