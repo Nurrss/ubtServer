@@ -166,8 +166,8 @@ router.route("/:id").get(getSubjectById);
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { subject } = req.body;
-    const fieldsToUpdate = { subject };
+    const { kz_subject, ru_subject } = req.body;
+    const fieldsToUpdate = { kz_subject, ru_subject };
     await subjects.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
