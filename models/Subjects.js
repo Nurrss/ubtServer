@@ -26,9 +26,6 @@ SubjectsSchema.pre(
       for (const topic of topics) {
         console.log("Deleting questions related to topic:", topic._id);
 
-        await Questions.deleteMany({ _id: { $in: topic.kz_questions } });
-        await Questions.deleteMany({ _id: { $in: topic.ru_questions } });
-
         const questions = await Questions.find({
           _id: { $in: [...topic.kz_questions, ...topic.ru_questions] },
         });
@@ -37,6 +34,9 @@ SubjectsSchema.pre(
           console.log("Deleting options related to question:", question._id);
           await Options.deleteMany({ _id: { $in: question.options } });
         });
+
+        await Questions.deleteMany({ _id: { $in: topic.kz_questions } });
+        await Questions.deleteMany({ _id: { $in: topic.ru_questions } });
 
         // Удалить саму тему
         console.log("Deleting topic:", topic._id);
