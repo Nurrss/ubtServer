@@ -1,3 +1,9 @@
+const mongoose = require("mongoose");
+const Exams = require("../models/Exams");
+const Subjects = require("../models/Subjects");
+const Questions = require("../models/Questions");
+const Results = require("../models/Results");
+
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
 
@@ -39,7 +45,11 @@ const getResultForStudent = async (req, res) => {
     for (let result of validResults) {
       for (let subjectResult of result.subjects) {
         const correctAnswers = await Questions.find({
-          _id: { $in: subjectResult.results.map((r) => r.questionNumber) },
+          _id: {
+            $in: subjectResult.results.map(
+              (r) => new mongoose.Types.ObjectId(r.questionNumber)
+            ),
+          },
         }).populate("correctOptions");
 
         subjectResult.totalCorrect = 0;
@@ -47,9 +57,20 @@ const getResultForStudent = async (req, res) => {
         subjectResult.totalPoints = 0;
 
         for (let answer of subjectResult.results) {
-          const correctOptions = correctAnswers
-            .find((q) => q._id.toString() === answer.questionNumber.toString())
-            .correctOptions.map((opt) => opt._id.toString());
+          const question = correctAnswers.find(
+            (q) => q._id.toString() === answer.questionNumber.toString()
+          );
+
+          if (!question) {
+            console.warn(
+              `Question with ID ${answer.questionNumber} not found.`
+            );
+            continue;
+          }
+
+          const correctOptions = question.correctOptions.map((opt) =>
+            opt._id.toString()
+          );
 
           const isCorrect =
             answer.optionIds.every((id) => correctOptions.includes(id)) &&
@@ -57,9 +78,7 @@ const getResultForStudent = async (req, res) => {
 
           if (isCorrect) {
             subjectResult.totalCorrect++;
-            subjectResult.totalPoints += correctAnswers.find(
-              (q) => q._id.toString() === answer.questionNumber.toString()
-            ).point;
+            subjectResult.totalPoints += question.point;
           } else {
             subjectResult.totalIncorrect++;
           }
