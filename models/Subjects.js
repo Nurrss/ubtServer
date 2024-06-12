@@ -33,10 +33,10 @@ SubjectsSchema.pre(
           _id: { $in: [...topic.kz_questions, ...topic.ru_questions] },
         });
 
-        for (const question of questions) {
+        questions.forEach(async (question) => {
           console.log("Deleting options related to question:", question._id);
           await Options.deleteMany({ _id: { $in: question.options } });
-        }
+        });
 
         // Удалить саму тему
         console.log("Deleting topic:", topic._id);
