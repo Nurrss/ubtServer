@@ -171,9 +171,9 @@ router.route("/add").post(async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { literal, className } = req.body;
-    const fieldsToUpdate = { literal, className };
-    await admin.updateById({ entityId, fieldsToUpdate, req, res });
+    const { literal, classNum } = req.body;
+    const fieldsToUpdate = { literal, class: classNum };
+    await clases.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
   }
