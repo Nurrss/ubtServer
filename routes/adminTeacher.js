@@ -189,7 +189,6 @@ router.put("/:id", async (req, res) => {
 
   try {
     const teacher = await Teachers.findById(teacherId).populate("user");
-    console.log(teacher);
 
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
@@ -208,8 +207,9 @@ router.put("/:id", async (req, res) => {
 
     // Update Class details
     const classId = teacher.class;
-    const existClass = await Classes.find({ literal, class: classNum });
+    const existClass = await Classes.findOne({ literal, class: classNum });
     if (existClass) {
+      console.log(existClass);
       return res
         .status(400)
         .json({ message: "This class or literal already exist" });
