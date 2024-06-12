@@ -1,13 +1,9 @@
-const Results = require("../models/Results");
-const Students = require("../models/Students");
-
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
 
   try {
-    // Log request details
     console.log("Request details:", { examId, studentId });
-    // asdf
+
     const allResults = await Results.find({ exam: examId })
       .sort({ overallScore: -1 })
       .populate({
@@ -19,7 +15,6 @@ const getResultForStudent = async (req, res) => {
       })
       .exec();
 
-    // Log all results
     console.log("All Results:", allResults);
 
     if (!allResults || allResults.length === 0) {
@@ -28,21 +23,10 @@ const getResultForStudent = async (req, res) => {
         .json({ message: "No results found for this exam." });
     }
 
-    // Check if the results have valid student references
-    allResults.forEach((result) => {
-      if (!result.student) {
-        console.error(`Result ${result._id} has no valid student reference.`);
-      } else {
-        console.log(`Result ${result._id} has a valid student reference.`);
-      }
-    });
-
-    // Filter out results with null students
     const validResults = allResults.filter(
       (result) => result.student && result.student.user
     );
 
-    // Log valid results
     console.log("Valid Results:", validResults);
 
     if (validResults.length === 0) {
@@ -51,7 +35,66 @@ const getResultForStudent = async (req, res) => {
         .json({ message: "No valid results found for this exam." });
     }
 
-    // Map top 10 results
+    // Выполняем вычисления
+    for (let result of validResults) {
+      for (let subjectResult of result.subjects) {
+        const correctAnswers = await Questions.find({
+          _id: { $in: subjectResult.results.map((r) => r.questionNumber) },
+        }).populate("correctOptions");
+
+        subjectResult.totalCorrect = 0;
+        subjectResult.totalIncorrect = 0;
+        subjectResult.totalPoints = 0;
+
+        for (let answer of subjectResult.results) {
+          const correctOptions = correctAnswers
+            .find((q) => q._id.toString() === answer.questionNumber.toString())
+            .correctOptions.map((opt) => opt._id.toString());
+
+          const isCorrect =
+            answer.optionIds.every((id) => correctOptions.includes(id)) &&
+            answer.optionIds.length === correctOptions.length;
+
+          if (isCorrect) {
+            subjectResult.totalCorrect++;
+            subjectResult.totalPoints += correctAnswers.find(
+              (q) => q._id.toString() === answer.questionNumber.toString()
+            ).point;
+          } else {
+            subjectResult.totalIncorrect++;
+          }
+        }
+
+        subjectResult.percent =
+          (
+            (subjectResult.totalCorrect /
+              (subjectResult.totalCorrect + subjectResult.totalIncorrect)) *
+            100
+          ).toFixed(2) + "%";
+      }
+
+      result.overallScore = result.subjects.reduce(
+        (sum, sub) => sum + sub.totalPoints,
+        0
+      );
+      result.totalCorrect = result.subjects.reduce(
+        (sum, sub) => sum + sub.totalCorrect,
+        0
+      );
+      result.totalIncorrect = result.subjects.reduce(
+        (sum, sub) => sum + sub.totalIncorrect,
+        0
+      );
+      result.overallPercent =
+        (
+          (result.totalCorrect /
+            (result.totalCorrect + result.totalIncorrect)) *
+          100
+        ).toFixed(2) + "%";
+
+      await result.save();
+    }
+
     const top10Results = validResults.slice(0, 10).map((result) => ({
       ...result.toObject(),
       student: {
@@ -60,19 +103,16 @@ const getResultForStudent = async (req, res) => {
       },
     }));
 
-    // Find the specific student's result
     const studentResult = validResults.find(
       (result) => result.student._id.toString() === studentId
     );
 
-    // Log student result
     console.log("Student Result:", studentResult);
 
     if (!studentResult) {
       return res.status(404).json({ message: "Results not found" });
     }
 
-    // Calculate student's rank
     const studentRank =
       validResults.findIndex(
         (result) => result.student._id.toString() === studentId
