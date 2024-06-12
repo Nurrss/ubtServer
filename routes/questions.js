@@ -183,9 +183,18 @@ router.post("/add", createQuestionWithOptions);
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await questions.deleteById(req, res, modelName);
+    const question = await Questions.findById(req.params.id);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    await question.remove();
+
+    res
+      .status(200)
+      .json({ message: "Question and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

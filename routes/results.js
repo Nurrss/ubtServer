@@ -161,9 +161,18 @@ router.route("/").get(async (req, res) => {
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await results.deleteById(req, res, modelName);
+    const result = await Results.findById(req.params.id);
+    if (!result) {
+      return res.status(404).json({ message: "Result not found" });
+    }
+
+    await result.remove();
+
+    res
+      .status(200)
+      .json({ message: "Result and related references deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

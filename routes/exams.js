@@ -169,9 +169,18 @@ router.route("/").get(async (req, res) => {
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await exams.deleteById(req, res, modelName);
+    const exam = await Exams.findById(req.params.id);
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    await exam.remove();
+
+    res
+      .status(200)
+      .json({ message: "Exam and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

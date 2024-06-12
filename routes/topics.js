@@ -178,9 +178,18 @@ router.post("/add", AddTopicToSubject);
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await topics.deleteById(req, res, modelName);
+    const topic = await Topics.findById(req.params.id);
+    if (!topic) {
+      return res.status(404).json({ message: "Topic not found" });
+    }
+
+    await topic.remove();
+
+    res.status(200).json({
+      message: "Topic and related questions and options deleted successfully",
+    });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

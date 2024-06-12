@@ -184,9 +184,18 @@ router.route("/").get(async (req, res) => {
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await teacher.deleteById(req, res, modelName);
+    const teacher = await Teachers.findById(req.params.id);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    await teacher.remove();
+
+    res
+      .status(200)
+      .json({ message: "Teacher and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

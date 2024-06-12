@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Exams = require("./Exams"); // Путь к вашей модели экзаменов
+const Students = require("./Students");
 
 const ResultsSchema = new Schema(
   {
@@ -33,5 +35,25 @@ const ResultsSchema = new Schema(
   },
   { timestamps: true }
 );
+
+ResultsSchema.pre("remove", async function (next) {
+  try {
+    // Удаление результата из экзамена
+    await Exams.updateMany(
+      { results: this._id },
+      { $pull: { results: this._id } }
+    );
+
+    // Удаление результата из студента
+    await Students.updateMany(
+      { results: this._id },
+      { $pull: { results: this._id } }
+    );
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = mongoose.model("Results", ResultsSchema);

@@ -13,6 +13,9 @@ const {
 const { studentStartsExam } = require("../controllers/studentStartsExam");
 const { submitOrUpdateAnswer } = require("../controllers/submitAnswer");
 const { getResultForStudent } = require("../controllers/GetResultForStudent");
+const {
+  getAllResultsForStudent,
+} = require("../controllers/getAllResultsForStudent");
 
 const student = new ApiOptimizer(Students);
 const user = new ApiOptimizer(Users);
@@ -349,9 +352,18 @@ router.route("/").get(async (req, res) => {
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await student.deleteById(req, res, modelName);
+    const student = await Students.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    await student.remove();
+
+    res
+      .status(200)
+      .json({ message: "Student and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -391,5 +403,6 @@ router.post("/excel", registerStudentsFromUrl);
 router.post("/startExam", studentStartsExam);
 router.post("/submitOrUpdateAnswer", submitOrUpdateAnswer);
 router.post("/getResult", getResultForStudent);
+router.post("/getAllResultsForStudent", getAllResultsForStudent);
 
 module.exports = router;

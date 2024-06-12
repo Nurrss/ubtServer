@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Topics = require("./Topics");
+const Options = require("./Options");
 
 const QuestionsSchema = new Schema({
   question: {
@@ -28,6 +30,25 @@ const QuestionsSchema = new Schema({
     required: true,
     enum: ["kz", "ru"],
   },
+});
+
+QuestionsSchema.pre("remove", async function (next) {
+  try {
+    await Topics.updateMany(
+      { kz_questions: this._id },
+      { $pull: { kz_questions: this._id } }
+    );
+    await Topics.updateMany(
+      { ru_questions: this._id },
+      { $pull: { ru_questions: this._id } }
+    );
+
+    await Options.deleteMany({ _id: { $in: this.options } });
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = mongoose.model("Questions", QuestionsSchema);

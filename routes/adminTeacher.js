@@ -284,33 +284,20 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.route("/:id").delete(async (req, res) => {
   try {
-    const teacherId = req.params.id;
-
-    const teacherToDelete = await Teachers.findById(teacherId).populate("user");
-
-    if (!teacherToDelete) {
-      return res.status(404).send("Teacher not found.");
+    const teacher = await Teachers.findById(req.params.id);
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
-    if (teacherToDelete.class) {
-      await Classes.findByIdAndUpdate(teacherToDelete.class, {
-        $unset: { teacher: "" },
-      });
-    }
-
-    await Teachers.findByIdAndDelete(teacherId);
-
-    if (teacherToDelete.user) {
-      await Users.findByIdAndDelete(teacherToDelete.user._id, { new: true });
-    }
+    await teacher.remove();
 
     res
       .status(200)
-      .send({ message: "Teacher and associated user deleted successfully." });
+      .json({ message: "Teacher and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

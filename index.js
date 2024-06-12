@@ -18,6 +18,7 @@ const registerRoute = require("./routes/register");
 const optionRoute = require("./routes/options");
 const questionRoute = require("./routes/questions");
 const topicRoute = require("./routes/topics");
+const classRoute = require("./routes/classes");
 const examRoute = require("./routes/exams");
 const resultsRoute = require("./routes/results");
 const { logger, logEvents } = require("./middleware/logger");
@@ -52,6 +53,7 @@ app.use("/auth", authRoute);
 
 // authorized routes
 app.use("/students", studentRoute);
+app.use("/class", classRoute);
 app.use("/exams", examRoute);
 app.use("/option", optionRoute);
 app.use("/teachers", teacherRoute);

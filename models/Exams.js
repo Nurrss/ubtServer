@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Results = require("./Results");
+const Topics = require("./Topics");
 
 const ExamsSchema = new Schema({
   subjects: [
@@ -16,6 +18,16 @@ const ExamsSchema = new Schema({
   finishedAt: { type: Date, required: true },
   examType: { type: String, enum: ["last", "random"], default: "random" },
   amountOfPassed: { type: Number, default: 0 },
+});
+
+ExamsSchema.pre("remove", async function (next) {
+  try {
+    await Results.deleteMany({ exam: this._id });
+
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = mongoose.model("Exams", ExamsSchema);

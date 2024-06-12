@@ -146,9 +146,18 @@ router.post("/add", async (req, res) => {
 
 router.route("/:id").delete(async (req, res) => {
   try {
-    await subjects.deleteById(req, res, modelName);
+    const subject = await Subjects.findById(req.params.id);
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    await subject.remove();
+
+    res
+      .status(200)
+      .json({ message: "Subject and related data deleted successfully" });
   } catch (err) {
-    errorHandler(err, req, res);
+    res.status(500).json({ message: err.message });
   }
 });
 

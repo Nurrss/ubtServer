@@ -175,4 +175,21 @@ router.route("/:id").put(async (req, res) => {
   }
 });
 
+router.route("/:id").delete(async (req, res) => {
+  try {
+    const classToDelete = await Classes.findById(req.params.id);
+    if (!classToDelete) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    await classToDelete.remove();
+
+    res
+      .status(200)
+      .json({ message: "Class and related data deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
