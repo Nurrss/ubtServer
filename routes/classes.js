@@ -147,6 +147,10 @@ router.route("/").get(async (req, res) => {
 
 router.route("/:id").get(async (req, res) => {
   try {
+    const classs = Classes.findById(req.params.id);
+    if (!classs) {
+      res.status(400).json({ message: "Class not found" });
+    }
     await clases.getById(req, res, modelName);
     res.status(200).json({ clases });
   } catch (err) {
@@ -167,8 +171,8 @@ router.route("/add").post(async (req, res) => {
 router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
-    const { studentsCount, literal, className } = req.body;
-    const fieldsToUpdate = { studentsCount, literal, className };
+    const { literal, className } = req.body;
+    const fieldsToUpdate = { literal, className };
     await admin.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {
     errorHandler(err, req, res);
@@ -188,7 +192,7 @@ router.route("/:id").delete(async (req, res) => {
       .status(200)
       .json({ message: "Class and related data deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    errorHandler(err, req, res); // Использование middleware для обработки ошибок
   }
 });
 

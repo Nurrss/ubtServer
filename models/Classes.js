@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const Users = require("./Users");
 const Students = require("./Students");
 const Teachers = require("./Teachers");
 
@@ -14,16 +15,29 @@ const ClassesSchema = new Schema({
   teacher: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teachers" }],
 });
 
-ClassesSchema.pre("deleteOne", async function (next) {
-  try {
-    const classId = this._id;
-    await Students.deleteMany({ class: classId });
-    await Teachers.updateMany({ class: classId }, { $unset: { class: "" } });
+ClassesSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      const classId = this._id;
 
-    next();
-  } catch (err) {
-    next(err);
+      // Удалить всех студентов, связанных с классом
+      const students = await Students.find({ class: classId });
+      students.forEach(async (student) => {
+        {
+          await Users.findByIdAndDelete(student.user);
+          await student.deleteOne();
+        }
+      });
+
+      await Teachers.updateMany({ class: classId }, { $unset: { class: "" } });
+
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = mongoose.model("Classes", ClassesSchema);

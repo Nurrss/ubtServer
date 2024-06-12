@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Users = require("./Users");
-const Classes = require("./Classes");
 
 const TeachersSchema = new Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "Users" },
@@ -14,6 +12,8 @@ TeachersSchema.pre(
   { document: true, query: false },
   async function (next) {
     try {
+      const Users = require("./Users");
+      const Classes = require("./Classes");
       await Users.findByIdAndDelete(this.user);
 
       await Classes.updateMany(
