@@ -181,7 +181,7 @@ router.post("/add", async (req, res) => {
 });
 router.put("/:id", async (req, res) => {
   const teacherId = req.params.id;
-  const { name, surname, email, literal, classNum, subjectId } = req.body;
+  const { name, surname, email, subjectId } = req.body;
 
   try {
     // Find the existing teacher
@@ -200,20 +200,6 @@ router.put("/:id", async (req, res) => {
       await user.save();
     } else {
       return res.status(404).json({ message: "Associated user not found" });
-    }
-
-    // Update or create Class
-    let updatedClass;
-    if (classNum && literal) {
-      updatedClass = await Classes.findOneAndUpdate(
-        { class: classNum, literal: literal },
-        {},
-        { new: true, upsert: true }
-      );
-
-      // Set the teacher for the class
-      updatedClass.teacher = teacher._id;
-      await updatedClass.save();
     }
 
     // Update Subject
