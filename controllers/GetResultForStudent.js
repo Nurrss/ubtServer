@@ -44,23 +44,10 @@ const getResultForStudent = async (req, res) => {
     // Выполняем вычисления
     for (let result of validResults) {
       for (let subjectResult of result.subjects) {
-        const correctAnswers = await Questions.find({
-          _id: {
-            $in: subjectResult.results.map(
-              (r) => new mongoose.Types.ObjectId(r.questionNumber)
-            ),
-          },
-        }).populate("correctOptions");
-
-        subjectResult.totalCorrect = 0;
-        subjectResult.totalIncorrect = 0;
-        subjectResult.totalPoints = 0;
-
         for (let answer of subjectResult.results) {
-          const question = correctAnswers.find(
-            (q) => q._id.toString() === answer.questionNumber.toString()
-          );
-
+          const question = await Questions.findById(
+            answer.questionNumber
+          ).populate("correctOptions");
           if (!question) {
             console.warn(
               `Question with ID ${answer.questionNumber} not found.`
@@ -71,16 +58,19 @@ const getResultForStudent = async (req, res) => {
           const correctOptions = question.correctOptions.map((opt) =>
             opt._id.toString()
           );
-
           const isCorrect =
             answer.optionIds.every((id) => correctOptions.includes(id)) &&
             answer.optionIds.length === correctOptions.length;
 
-          if (isCorrect) {
-            subjectResult.totalCorrect++;
-            subjectResult.totalPoints += question.point;
-          } else {
-            subjectResult.totalIncorrect++;
+          if (!answer.calculated) {
+            if (isCorrect) {
+              subjectResult.totalCorrect++;
+              subjectResult.totalPoints += question.point;
+            } else {
+              subjectResult.totalIncorrect++;
+            }
+            answer.isCorrect = isCorrect;
+            answer.calculated = true;
           }
         }
 
