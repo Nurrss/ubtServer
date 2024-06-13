@@ -1,14 +1,44 @@
+const mongoose = require("mongoose");
 const Results = require("../models/Results");
 const Students = require("../models/Students");
+const Subjects = require("../models/Subjects"); // Ensure this model is correctly required
 
 const getResultsForExam = async (req, res) => {
   const { examId } = req.body;
+  const { subjectId, classId } = req.query;
 
   try {
-    // Log request details
-    console.log("Request details:", { examId });
+    console.log("Request details:", { examId, subjectId, classId });
 
-    const allResults = await Results.find({ exam: examId })
+    const query = { exam: examId };
+
+    if (subjectId) {
+      if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+        return res.status(400).json({ message: "Invalid subjectId" });
+      }
+      const subject = await Subjects.findById(subjectId).select(
+        "kz_subject ru_subject"
+      );
+      if (!subject) {
+        return res.status(404).json({ message: "Subject not found" });
+      }
+      query["subjects.name"] = {
+        $in: [subject.kz_subject, subject.ru_subject],
+      };
+    }
+
+    if (classId) {
+      if (!mongoose.Types.ObjectId.isValid(classId)) {
+        return res.status(400).json({ message: "Invalid classId" });
+      }
+      const studentsInClass = await Students.find({ class: classId }).select(
+        "_id"
+      );
+      const studentIds = studentsInClass.map((student) => student._id);
+      query.student = { $in: studentIds };
+    }
+
+    const allResults = await Results.find(query)
       .sort({ overallScore: -1 })
       .populate({
         path: "student",
@@ -19,7 +49,6 @@ const getResultsForExam = async (req, res) => {
       })
       .exec();
 
-    // Log all results
     console.log("All Results for exam:", allResults);
 
     if (!allResults || allResults.length === 0) {
@@ -28,7 +57,6 @@ const getResultsForExam = async (req, res) => {
         .json({ message: "No results found for this exam." });
     }
 
-    // Map top 10 results
     const top10Results = allResults.slice(0, 10).map((result) => ({
       ...result.toObject(),
       student: {
@@ -37,7 +65,6 @@ const getResultsForExam = async (req, res) => {
       },
     }));
 
-    // Prepare results with rank
     const rankedResults = allResults.map((result, index) => ({
       rank: index + 1,
       student: {
