@@ -1,7 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Exams = require("./Exams"); // Путь к вашей модели экзаменов
-const Students = require("./Students");
 
 const ResultsSchema = new Schema(
   {
@@ -18,6 +16,16 @@ const ResultsSchema = new Schema(
         name: { type: String },
         results: [
           {
+            questionId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "Questions",
+            },
+            optionIds: [
+              {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Options",
+              },
+            ],
             questionNumber: { type: Number },
             isCorrect: { type: Boolean },
           },
@@ -36,24 +44,30 @@ const ResultsSchema = new Schema(
   { timestamps: true }
 );
 
-ResultsSchema.pre("deleteOne", async function (next) {
-  try {
-    // Удаление результата из экзамена
-    await Exams.updateMany(
-      { results: this._id },
-      { $pull: { results: this._id } }
-    );
+ResultsSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      const Exams = require("./Exams"); // Путь к вашей модели экзаменов
+      const Students = require("./Students");
+      // Удаление результата из экзамена
+      await Exams.updateMany(
+        { results: this._id },
+        { $pull: { results: this._id } }
+      );
 
-    // Удаление результата из студента
-    await Students.updateMany(
-      { results: this._id },
-      { $pull: { results: this._id } }
-    );
+      // Удаление результата из студента
+      await Students.updateMany(
+        { results: this._id },
+        { $pull: { results: this._id } }
+      );
 
-    next();
-  } catch (err) {
-    next(err);
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = mongoose.model("Results", ResultsSchema);

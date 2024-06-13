@@ -33,6 +33,15 @@ const submitOrUpdateAnswer = async (req, res) => {
       return res.status(404).json({ message: "Question not found" });
     }
 
+    const subject = await Subjects.findById(subjectId).select(
+      language === "ru" ? "ru_subject" : "kz_subject"
+    );
+    if (!subject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+    const subjectName =
+      language === "ru" ? subject.ru_subject : subject.kz_subject;
+
     let result = await Results.findOne({ exam: examId, student: studentId });
     if (!result) {
       result = new Results({
@@ -46,10 +55,11 @@ const submitOrUpdateAnswer = async (req, res) => {
       });
     }
 
-    let subjectResult = result.subjects.find((sub) => sub.name === subjectId);
+    let subjectResult = result.subjects.find((sub) => sub.name === subjectName);
+
     if (!subjectResult) {
       subjectResult = {
-        name: subjectId,
+        name: subjectName,
         results: [],
         totalPoints: 0,
         totalCorrect: 0,
@@ -63,14 +73,39 @@ const submitOrUpdateAnswer = async (req, res) => {
       (r) => r.questionNumber === questionNumber
     );
     if (answer) {
-      answer.optionIds = optionIds;
+      answer.optionIds = optionIds.map((id) => new mongoose.Types.ObjectId(id));
+      answer.questionId = questionId;
+      // Ensure the questionId is updated
     } else {
-      subjectResult.results.push({ questionNumber, optionIds });
+      subjectResult.results.push({
+        questionNumber,
+        optionIds: optionIds.map((id) => mongoose.Types.ObjectId(id)),
+        questionId,
+      });
     }
 
     await result.save();
 
-    res.status(200).json({ message: "Answer received" });
+    res.status(200).json({
+      message: "Answer submitted or updated successfully",
+      result: {
+        _id: result._id,
+        exam: result.exam,
+        student: result.student,
+        subjects: result.subjects.map((sub) => ({
+          name: sub.name,
+          results: sub.results.map((res) => ({
+            questionNumber: res.questionNumber,
+            _id: res._id,
+            questionId: res.questionId, // Include questionId in response
+            optionIds: res.optionIds, // Include optionIds in response
+          })),
+        })),
+        createdAt: result.createdAt,
+        updatedAt: result.updatedAt,
+        __v: result.__v,
+      },
+    });
   } catch (error) {
     console.error("Error occurred:", error);
     res.status(400).json({

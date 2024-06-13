@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
-const Subjects = require("../models/Subjects");
 const Questions = require("../models/Questions");
 const Results = require("../models/Results");
 
@@ -41,26 +40,25 @@ const getResultForStudent = async (req, res) => {
         .json({ message: "No valid results found for this exam." });
     }
 
-    // Выполняем вычисления
+    // Perform calculations
     for (let result of validResults) {
       for (let subjectResult of result.subjects) {
         for (let answer of subjectResult.results) {
-          const question = await Questions.findById(
-            answer.questionNumber
-          ).populate("correctOptions");
+          const question = await Questions.findById(answer.questionId).populate(
+            "correctOptions"
+          );
           if (!question) {
-            console.warn(
-              `Question with ID ${answer.questionNumber} not found.`
-            );
+            console.warn(`Question with ID ${answer.questionId} not found.`);
             continue;
           }
 
           const correctOptions = question.correctOptions.map((opt) =>
             opt._id.toString()
           );
+          const optionIds = answer.optionIds.map((id) => id.toString()); // Ensure optionIds is defined and converted to string
           const isCorrect =
-            answer.optionIds.every((id) => correctOptions.includes(id)) &&
-            answer.optionIds.length === correctOptions.length;
+            optionIds.every((id) => correctOptions.includes(id)) &&
+            optionIds.length === correctOptions.length;
 
           if (!answer.calculated) {
             if (isCorrect) {
