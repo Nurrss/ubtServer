@@ -79,7 +79,7 @@ const submitOrUpdateAnswer = async (req, res) => {
     } else {
       subjectResult.results.push({
         questionNumber,
-        optionIds: optionIds.map((id) => mongoose.Types.ObjectId(id)),
+        optionIds: optionIds.map((id) => new mongoose.Types.ObjectId(id)),
         questionId,
       });
     }
