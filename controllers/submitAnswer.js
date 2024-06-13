@@ -4,7 +4,7 @@ const Subjects = require("../models/Subjects");
 const Questions = require("../models/Questions");
 const Results = require("../models/Results");
 
-const submitOrUpdateAnswer = async (req, res) => {
+const submitOrUpdateAnswer = async (data, ws) => {
   const {
     examId,
     studentId,
@@ -13,7 +13,7 @@ const submitOrUpdateAnswer = async (req, res) => {
     optionIds,
     questionNumber,
     language,
-  } = req.body;
+  } = data;
 
   if (
     !examId ||
@@ -24,20 +24,20 @@ const submitOrUpdateAnswer = async (req, res) => {
     !questionNumber ||
     !language
   ) {
-    return res.status(400).json({ message: "All fields are required" });
+    return ws.send(JSON.stringify({ message: "All fields are required" }));
   }
 
   try {
     const question = await Questions.findById(questionId);
     if (!question) {
-      return res.status(404).json({ message: "Question not found" });
+      return ws.send(JSON.stringify({ message: "Question not found" }));
     }
 
     const subject = await Subjects.findById(subjectId).select(
       language === "ru" ? "ru_subject" : "kz_subject"
     );
     if (!subject) {
-      return res.status(404).json({ message: "Subject not found" });
+      return ws.send(JSON.stringify({ message: "Subject not found" }));
     }
     const subjectName =
       language === "ru" ? subject.ru_subject : subject.kz_subject;
@@ -86,32 +86,36 @@ const submitOrUpdateAnswer = async (req, res) => {
 
     await result.save();
 
-    res.status(200).json({
-      message: "Answer submitted or updated successfully",
-      result: {
-        _id: result._id,
-        exam: result.exam,
-        student: result.student,
-        subjects: result.subjects.map((sub) => ({
-          name: sub.name,
-          results: sub.results.map((res) => ({
-            questionNumber: res.questionNumber,
-            _id: res._id,
-            questionId: res.questionId, // Include questionId in response
-            optionIds: res.optionIds, // Include optionIds in response
+    ws.send(
+      JSON.stringify({
+        message: "Answer submitted or updated successfully",
+        result: {
+          _id: result._id,
+          exam: result.exam,
+          student: result.student,
+          subjects: result.subjects.map((sub) => ({
+            name: sub.name,
+            results: sub.results.map((res) => ({
+              questionNumber: res.questionNumber,
+              _id: res._id,
+              questionId: res.questionId, // Include questionId in response
+              optionIds: res.optionIds, // Include optionIds in response
+            })),
           })),
-        })),
-        createdAt: result.createdAt,
-        updatedAt: result.updatedAt,
-        __v: result.__v,
-      },
-    });
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+          __v: result.__v,
+        },
+      })
+    );
   } catch (error) {
     console.error("Error occurred:", error);
-    res.status(400).json({
-      message: "Error submitting or updating answer",
-      error: error.message,
-    });
+    ws.send(
+      JSON.stringify({
+        message: "Error submitting or updating answer",
+        error: error.message,
+      })
+    );
   }
 };
 

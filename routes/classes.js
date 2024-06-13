@@ -172,6 +172,7 @@ router.route("/:id").put(async (req, res) => {
   try {
     const entityId = _.get(req, "params.id");
     const { literal, classNum } = req.body;
+    
     const fieldsToUpdate = { literal, class: classNum };
     await clases.updateById({ entityId, fieldsToUpdate, req, res });
   } catch (err) {

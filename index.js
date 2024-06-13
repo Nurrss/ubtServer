@@ -1,10 +1,12 @@
 const express = require("express");
-const app = express();
+const http = require("http");
+const WebSocket = require("ws");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
+
 const usersRoute = require("./routes/users");
 const subjectsRoute = require("./routes/subjects");
 const adminsRoute = require("./routes/admins");
@@ -27,6 +29,8 @@ const { checkExamStatus } = require("./middleware/checkExamStatus");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
+const { submitOrUpdateAnswer } = require("./controllers/submitAnswer");
+
 const port = process.env.PORT || 8080;
 
 const options = {
@@ -39,6 +43,10 @@ const options = {
   },
   apis: ["routes/*.js"],
 };
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
 app.use(express.json());
 const specs = swaggerJsdoc(options);
@@ -74,7 +82,7 @@ mongoose
 
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
-  app.listen(port, () => {
+  server.listen(port, () => {
     console.log("Backend server is running at: ", port);
   });
 });
@@ -85,6 +93,25 @@ mongoose.connection.on("error", (err) => {
     `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
     "mongoErrLog.log"
   );
+});
+
+// WebSocket setup
+wss.on("connection", (ws) => {
+  console.log("New client connected");
+
+  ws.on("message", async (message) => {
+    try {
+      const data = JSON.parse(message);
+      await submitOrUpdateAnswer(data, ws);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      ws.send(JSON.stringify({ error: "Error processing message" }));
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
 });
 
 // it should be in the end

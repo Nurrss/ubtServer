@@ -27,6 +27,7 @@
     "swagger-ui-express": "^5.0.0",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
+    "ws": "^8.17.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
