@@ -9,6 +9,41 @@ const getResultForStudent = async (req, res) => {
   try {
     console.log("Request details:", { examId, studentId });
 
+    // Fetch the result for the student
+    const studentResult = await Results.findOne({
+      exam: examId,
+      student: studentId,
+    }).populate({
+      path: "student",
+      populate: {
+        path: "user",
+        select: "name surname",
+      },
+    });
+
+    if (!studentResult) {
+      return res
+        .status(404)
+        .json({ message: "No result found for this student in the exam." });
+    }
+
+    // Assuming language is stored in studentResult or can be determined by another means
+    const language = req.body.language || "kz"; // Set default language to "kz" if not provided
+
+    const exam = await Exams.findById(examId).populate({
+      path: "subjects",
+      populate: {
+        path: "questions",
+        select: "_id point correctOptions",
+      },
+    });
+
+    if (!exam || !exam.subjects || exam.subjects.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No subjects found for this exam." });
+    }
+
     const allResults = await Results.find({ exam: examId })
       .sort({ overallScore: -1 })
       .populate({
@@ -17,8 +52,7 @@ const getResultForStudent = async (req, res) => {
           path: "user",
           select: "name surname",
         },
-      })
-      .exec();
+      });
 
     console.log("All Results:", allResults);
 
@@ -42,62 +76,74 @@ const getResultForStudent = async (req, res) => {
 
     // Perform calculations
     for (let result of validResults) {
-      for (let subjectResult of result.subjects) {
-        for (let answer of subjectResult.results) {
-          const question = await Questions.findById(answer.questionId).populate(
-            "correctOptions"
+      let totalCorrect = 0;
+      let totalIncorrect = 0;
+      let totalPoints = 0;
+
+      for (let subject of exam.subjects) {
+        const subjectResult = result.subjects.find(
+          (sub) => sub.name === subject[language + "_subject"]
+        );
+
+        if (!subjectResult) continue;
+
+        let subjectTotalCorrect = 0;
+        let subjectTotalIncorrect = 0;
+        let subjectTotalPoints = 0;
+
+        for (let question of subject.questions) {
+          const answer = subjectResult.results.find(
+            (r) => r.questionId.toString() === question._id.toString()
           );
-          if (!question) {
-            console.warn(`Question with ID ${answer.questionId} not found.`);
-            continue;
-          }
 
           const correctOptions = question.correctOptions.map((opt) =>
-            opt._id.toString()
+            opt.toString()
           );
-          const optionIds = answer.optionIds.map((id) => id.toString()); // Ensure optionIds is defined and converted to string
-          const isCorrect =
-            optionIds.every((id) => correctOptions.includes(id)) &&
-            optionIds.length === correctOptions.length;
 
-          if (!answer.calculated) {
+          if (answer) {
+            const optionIds = answer.optionIds.map((id) => id.toString());
+            const isCorrect =
+              optionIds.every((id) => correctOptions.includes(id)) &&
+              optionIds.length === correctOptions.length;
+
+            answer.isCorrect = isCorrect; // Set the isCorrect field
+
             if (isCorrect) {
-              subjectResult.totalCorrect++;
-              subjectResult.totalPoints += question.point;
+              subjectTotalCorrect++;
+              subjectTotalPoints += question.point;
             } else {
-              subjectResult.totalIncorrect++;
+              subjectTotalIncorrect++;
             }
-            answer.isCorrect = isCorrect;
-            answer.calculated = true;
+          } else {
+            // If the question was not answered, count it as incorrect
+            subjectTotalIncorrect++;
           }
         }
 
-        subjectResult.percent =
-          (
-            (subjectResult.totalCorrect /
-              (subjectResult.totalCorrect + subjectResult.totalIncorrect)) *
-            100
-          ).toFixed(2) + "%";
+        subjectResult.totalCorrect = subjectTotalCorrect;
+        subjectResult.totalIncorrect = subjectTotalIncorrect;
+        subjectResult.totalPoints = subjectTotalPoints;
+        subjectResult.percent = (
+          (subjectTotalCorrect /
+            (subjectTotalCorrect + subjectTotalIncorrect)) *
+          100
+        ).toFixed(2);
+
+        totalCorrect += subjectTotalCorrect;
+        totalIncorrect += subjectTotalIncorrect;
+        totalPoints += subjectTotalPoints;
       }
 
-      result.overallScore = result.subjects.reduce(
-        (sum, sub) => sum + sub.totalPoints,
-        0
-      );
-      result.totalCorrect = result.subjects.reduce(
-        (sum, sub) => sum + sub.totalCorrect,
-        0
-      );
-      result.totalIncorrect = result.subjects.reduce(
-        (sum, sub) => sum + sub.totalIncorrect,
-        0
-      );
+      result.totalCorrect = totalCorrect;
+      result.totalIncorrect = totalIncorrect;
+      result.overallScore = totalPoints;
       result.overallPercent =
-        (
-          (result.totalCorrect /
-            (result.totalCorrect + result.totalIncorrect)) *
-          100
-        ).toFixed(2) + "%";
+        ((totalCorrect / (totalCorrect + totalIncorrect)) * 100).toFixed(2) +
+        "%";
+      result.finishedAt = new Date();
+      const durationInMillis = result.finishedAt - result.startedAt;
+      const durationInHours = durationInMillis / (1000 * 60 * 60);
+      result.duration = parseFloat(durationInHours.toFixed(2)); // Save the duration in hours as a number
 
       await result.save();
     }
@@ -109,16 +155,6 @@ const getResultForStudent = async (req, res) => {
         surname: result.student.user.surname,
       },
     }));
-
-    const studentResult = validResults.find(
-      (result) => result.student._id.toString() === studentId
-    );
-
-    console.log("Student Result:", studentResult);
-
-    if (!studentResult) {
-      return res.status(404).json({ message: "Results not found" });
-    }
 
     const studentRank =
       validResults.findIndex(

@@ -40,6 +40,14 @@ const ResultsSchema = new Schema(
     totalCorrect: { type: Number },
     totalIncorrect: { type: Number },
     overallPercent: { type: String },
+    startedAt: { type: Date },
+    finishedAt: { type: Date },
+    duration: { type: Number },
+    // language: {
+    //   type: String,
+    //   required: true,
+    //   enum: ["kz", "ru"],
+    // },
   },
   { timestamps: true }
 );

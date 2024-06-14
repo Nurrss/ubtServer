@@ -83,6 +83,7 @@ const studentStartsExam = async (req, res) => {
       totalCorrect: 0,
       totalIncorrect: 0,
       overallPercent: "0%",
+      startedAt: new Date(),
     });
 
     await result.save();
@@ -90,7 +91,11 @@ const studentStartsExam = async (req, res) => {
     exam.results.push(result._id);
     await exam.save();
 
-    res.status(200).json({ questionsBySubject, resultId: result._id });
+    res.status(200).json({
+      questionsBySubject,
+      resultId: result._id,
+      startedAt: result.startedAt,
+    });
     console.log(questionsBySubject);
   } catch (error) {
     console.error("Error starting exam:", error);

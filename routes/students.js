@@ -11,7 +11,7 @@ const {
   registerStudentsFromUrl,
 } = require("../controllers/excelRegisterController");
 const { studentStartsExam } = require("../controllers/studentStartsExam");
-const { submitOrUpdateAnswer } = require("../controllers/submitAnswer");
+const { submitOrUpdateBatchAnswers } = require("../controllers/submitAnswer");
 const { getResultForStudent } = require("../controllers/GetResultForStudent");
 const {
   getAllResultsForStudent,
@@ -401,7 +401,7 @@ router.route("/:id").put(async (req, res) => {
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/excel", registerStudentsFromUrl);
 router.post("/startExam", studentStartsExam);
-router.post("/submitOrUpdateAnswer", submitOrUpdateAnswer);
+router.post("/submitOrUpdateAnswer", submitOrUpdateBatchAnswers);
 router.post("/getResult", getResultForStudent);
 router.post("/getAllResultsForStudent", getAllResultsForStudent);
 
