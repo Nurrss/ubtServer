@@ -14,6 +14,7 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
   try {
     const { examId, studentId } = answers[0];
 
+    // Fetch the result for the student
     let result = await Results.findOne({ exam: examId, student: studentId });
     if (!result) {
       result = new Results({
@@ -27,31 +28,46 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
       });
     }
 
+    // Fetch all questions and subjects in one go
+    const questionIds = answers.map((answer) => answer.questionId);
+    const subjectIds = answers.map((answer) => answer.subjectId);
+
+    const questions = await Questions.find({
+      _id: { $in: questionIds },
+    }).select("_id point correctOptions");
+
+    const subjects = await Subjects.find({
+      _id: { $in: subjectIds },
+    }).select("ru_subject kz_subject");
+
+    // Create maps for quick lookup
+    const questionMap = questions.reduce((acc, question) => {
+      acc[question._id.toString()] = question;
+      return acc;
+    }, {});
+
+    const subjectMap = subjects.reduce((acc, subject) => {
+      acc[subject._id.toString()] = subject;
+      return acc;
+    }, {});
+
+    // Process each answer and prepare bulk operations
+    const bulkOperations = [];
+
     for (const answer of answers) {
       const { subjectId, questionId, optionIds, questionNumber, language } =
         answer;
 
-      if (
-        !subjectId ||
-        !questionId ||
-        !optionIds ||
-        !questionNumber ||
-        !language
-      ) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-
-      const question = await Questions.findById(questionId);
+      const question = questionMap[questionId.toString()];
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
 
-      const subject = await Subjects.findById(subjectId).select(
-        language === "ru" ? "ru_subject" : "kz_subject"
-      );
+      const subject = subjectMap[subjectId.toString()];
       if (!subject) {
         return res.status(404).json({ message: "Subject not found" });
       }
+
       const subjectName =
         language === "ru" ? subject.ru_subject : subject.kz_subject;
 
@@ -71,14 +87,15 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
         result.subjects.push(subjectResult);
       }
 
-      const answerDoc = subjectResult.results.find(
+      const existingAnswerIndex = subjectResult.results.findIndex(
         (r) => r.questionNumber === questionNumber
       );
-      if (answerDoc) {
-        answerDoc.optionIds = optionIds.map(
+
+      if (existingAnswerIndex !== -1) {
+        subjectResult.results[existingAnswerIndex].optionIds = optionIds.map(
           (id) => new mongoose.Types.ObjectId(id)
         );
-        answerDoc.questionId = questionId;
+        subjectResult.results[existingAnswerIndex].questionId = questionId;
       } else {
         subjectResult.results.push({
           questionNumber,
@@ -88,7 +105,16 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
       }
     }
 
-    await result.save();
+    // Bulk save the result
+    bulkOperations.push({
+      updateOne: {
+        filter: { exam: examId, student: studentId },
+        update: result,
+        upsert: true,
+      },
+    });
+
+    await Results.bulkWrite(bulkOperations);
 
     res.status(200).json({
       message: "Batch answers submitted or updated successfully",
