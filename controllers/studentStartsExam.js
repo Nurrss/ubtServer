@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
-
 const Exams = require("../models/Exams");
 const Results = require("../models/Results");
 
@@ -21,13 +19,14 @@ const studentStartsExam = async (req, res) => {
 
     const exam = await Exams.findById(examId).populate({
       path: "subjects",
-      match: { _id: { $in: selectedSubjectIds.map((id) => new ObjectId(id)) } },
-      populate: {
-        path: "topics",
-        populate: {
-          path: language === "ru" ? "ru_questions" : "kz_questions",
-          populate: { path: "options", select: "text" },
+      match: {
+        _id: {
+          $in: selectedSubjectIds.map((id) => new mongoose.Types.ObjectId(id)),
         },
+      },
+      populate: {
+        path: language === "ru" ? "ru_questions" : "kz_questions",
+        populate: { path: "options", select: "text" },
       },
     });
 
@@ -71,6 +70,7 @@ const studentStartsExam = async (req, res) => {
     const result = new Results({
       exam: examId,
       student: studentId,
+      language: language, // Ensure language is set
       subjects: questionsBySubject.map((subject) => ({
         name: subject.subjectName,
         results: [],
@@ -96,7 +96,6 @@ const studentStartsExam = async (req, res) => {
       resultId: result._id,
       startedAt: result.startedAt,
     });
-    console.log(questionsBySubject);
   } catch (error) {
     console.error("Error starting exam:", error);
     res

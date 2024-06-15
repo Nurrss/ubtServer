@@ -43,11 +43,11 @@ const ResultsSchema = new Schema(
     startedAt: { type: Date },
     finishedAt: { type: Date },
     duration: { type: Number },
-    // language: {
-    //   type: String,
-    //   required: true,
-    //   enum: ["kz", "ru"],
-    // },
+    language: {
+      type: String,
+      required: true,
+      enum: ["kz", "ru"],
+    },
   },
   { timestamps: true }
 );

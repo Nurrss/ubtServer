@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
 const Questions = require("../models/Questions");
 const Results = require("../models/Results");
+const { logEvents } = require("../middleware/logger");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -20,15 +21,15 @@ const getResultForStudent = async (req, res) => {
         select: "name surname",
       },
     });
-
+    console.log(studentResult);
     if (!studentResult) {
       return res
         .status(404)
         .json({ message: "No result found for this student in the exam." });
     }
 
-    // Assuming language is stored in studentResult or can be determined by another means
-    const language = req.body.language || "kz"; // Set default language to "kz" if not provided
+    // Set a default language if it is not provided
+    const language = studentResult.language || "kz";
 
     const exam = await Exams.findById(examId).populate({
       path: "subjects",

@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const Results = require("./Results");
 const Topics = require("./Topics");
 
 const ExamsSchema = new Schema({
@@ -21,14 +20,19 @@ const ExamsSchema = new Schema({
   amountOfPassed: { type: Number, default: 0 },
 });
 
-ExamsSchema.pre("deleteOne", async function (next) {
-  try {
-    await Results.deleteMany({ exam: this._id });
+ExamsSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    try {
+      const Results = require("./Results");
+      await Results.deleteMany({ exam: this._id });
 
-    next();
-  } catch (err) {
-    next(err);
+      next();
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 module.exports = mongoose.model("Exams", ExamsSchema);
