@@ -108,6 +108,7 @@ const getResultForStudent = async (req, res) => {
               optionIds.length === correctOptions.length;
 
             answer.isCorrect = isCorrect; // Set the isCorrect field
+            answer.questionNumber = question.questionNumber;
 
             if (isCorrect) {
               subjectTotalCorrect++;
@@ -116,7 +117,13 @@ const getResultForStudent = async (req, res) => {
               subjectTotalIncorrect++;
             }
           } else {
-            // If the question was not answered, count it as incorrect
+            // If the question was not answered, count it as incorrect and create an entry
+            subjectResult.results.push({
+              questionId: question._id,
+              optionIds: [],
+              isCorrect: false,
+              questionNumber: question.questionNumber,
+            });
             subjectTotalIncorrect++;
           }
         }
