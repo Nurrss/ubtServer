@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
-const Questions = require("../models/Questions");
 const Results = require("../models/Results");
-const { logEvents } = require("../middleware/logger");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -80,6 +78,7 @@ const getResultForStudent = async (req, res) => {
       let totalCorrect = 0;
       let totalIncorrect = 0;
       let totalPoints = 0;
+      let totalAvailablePoints = 0; // Total points available in the exam
 
       for (let subject of exam.subjects) {
         const subjectResult = result.subjects.find(
@@ -93,6 +92,7 @@ const getResultForStudent = async (req, res) => {
         let subjectTotalPoints = 0;
 
         for (let question of subject.questions) {
+          totalAvailablePoints += question.point; // Sum of all points available
           const answer = subjectResult.results.find(
             (r) => r.questionId.toString() === question._id.toString()
           );
@@ -139,8 +139,7 @@ const getResultForStudent = async (req, res) => {
       result.totalIncorrect = totalIncorrect;
       result.overallScore = totalPoints;
       result.overallPercent =
-        ((totalCorrect / (totalCorrect + totalIncorrect)) * 100).toFixed(2) +
-        "%";
+        ((totalPoints / totalAvailablePoints) * 100).toFixed(2) + "%";
       result.finishedAt = new Date();
       const durationInMillis = result.finishedAt - result.startedAt;
       const durationInHours = durationInMillis / (1000 * 60 * 60);
