@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
 const Results = require("../models/Results");
+const Questions = require("../models/Questions");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -31,10 +32,7 @@ const getResultForStudent = async (req, res) => {
 
     const exam = await Exams.findById(examId).populate({
       path: "subjects",
-      populate: {
-        path: "questions",
-        select: "_id point correctOptions",
-      },
+      select: "questions ru_subject kz_subject",
     });
 
     if (!exam || !exam.subjects || exam.subjects.length === 0) {
@@ -91,10 +89,22 @@ const getResultForStudent = async (req, res) => {
         let subjectTotalIncorrect = 0;
         let subjectTotalPoints = 0;
 
-        for (let question of subject.questions) {
+        // Dynamically assign question numbers based on the questions array in the subject
+        let questionNumberMap = {};
+        subject.questions.forEach((questionId, index) => {
+          questionNumberMap[questionId.toString()] = index + 1;
+        });
+
+        for (let questionId of subject.questions) {
+          // Declare the question variable before using it
+          let question = await Questions.findById(questionId).select(
+            "_id point correctOptions"
+          );
+
           totalAvailablePoints += question.point; // Sum of all points available
+
           const answer = subjectResult.results.find(
-            (r) => r.questionId.toString() === question._id.toString()
+            (r) => r.questionId.toString() === questionId.toString()
           );
 
           const correctOptions = question.correctOptions.map((opt) =>
@@ -108,7 +118,7 @@ const getResultForStudent = async (req, res) => {
               optionIds.length === correctOptions.length;
 
             answer.isCorrect = isCorrect; // Set the isCorrect field
-            answer.questionNumber = question.questionNumber;
+            answer.questionNumber = questionNumberMap[questionId.toString()]; // Assign question number from map
 
             if (isCorrect) {
               subjectTotalCorrect++;
@@ -122,7 +132,7 @@ const getResultForStudent = async (req, res) => {
               questionId: question._id,
               optionIds: [],
               isCorrect: false,
-              questionNumber: question.questionNumber,
+              questionNumber: questionNumberMap[questionId.toString()], // Assign question number from map
             });
             subjectTotalIncorrect++;
           }
