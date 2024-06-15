@@ -5,6 +5,8 @@ const Results = require("../models/Results");
 const studentStartsExam = async (req, res) => {
   const { examId, selectedSubjectIds, studentId, language } = req.body;
 
+  console.log(language);
+
   try {
     const existingResult = await Results.findOne({
       exam: examId,
@@ -25,8 +27,11 @@ const studentStartsExam = async (req, res) => {
         },
       },
       populate: {
-        path: language === "ru" ? "ru_questions" : "kz_questions",
-        populate: { path: "options", select: "text" },
+        path: "topics",
+        populate: {
+          path: language === "ru" ? "ru_questions" : "kz_questions",
+          populate: { path: "options", select: "text" },
+        },
       },
     });
 
@@ -66,6 +71,12 @@ const studentStartsExam = async (req, res) => {
         });
       }
     });
+
+    if (questionsBySubject.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No questions found for the selected subjects." });
+    }
 
     const result = new Results({
       exam: examId,
