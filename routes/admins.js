@@ -9,7 +9,7 @@ const Students = require("../models/Students");
 const Classes = require("../models/Classes");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
-const { getResultsForExam } = require("../controllers/getResultForExam");
+const { getAllResultForExam } = require("../controllers/getResultForExam");
 
 const admin = new ApiOptimizer(Admins);
 const modelName = "Admins";
@@ -227,6 +227,6 @@ router.put("/password/:id", async (req, res) => {
   }
 });
 
-router.post("/getResultsForExam", getResultsForExam);
+router.post("/getAllResultForExam", getAllResultForExam);
 
 module.exports = router;
