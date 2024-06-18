@@ -1,5 +1,7 @@
 const router = require("express").Router();
 const _ = require("lodash");
+const bcrypt = require("bcrypt");
+const { hashConstance, ROLES } = require("../enums");
 
 const Teachers = require("../models/Teachers");
 const Users = require("../models/Users");
@@ -209,37 +211,26 @@ router.route("/:id").get(async (req, res) => {
 
 router.route("/:id").put(async (req, res) => {
   try {
-    const entityId = _.get(req, "params.id");
-    const {
+    const id = req.params.id;
+    const teacher = await Teachers.findById(id);
+    console.log(teacher);
+    const { name, surname, classId, classNum, literal, email, password } =
+      req.body;
+    const userId = teacher.user;
+    const hashedPwd = await bcrypt.hash(password, hashConstance);
+
+    const updatedUser = await Users.findByIdAndUpdate(userId, {
       name,
       surname,
-      classId,
-      subjectId,
-      className,
-      kz_subject,
-      ru_subject,
       email,
-    } = req.body;
-
-    // Обновление данных пользователя (name, surname)
-    await user.updateById({
-      classId,
-      fieldsToUpdate: { name, surname, email },
-      req,
-      res,
+      password: hashedPwd,
     });
-    await classes.updateById({
-      entityId,
-      fieldsToUpdate: { class: className },
-      req,
-      res,
+    updatedUser.save();
+    const updatedClass = await Classes.findByIdAndUpdate(classId, {
+      classNum,
+      literal,
     });
-    await subject.updateById({
-      subjectId,
-      fieldsToUpdate: { kz_subject, ru_subject },
-      req,
-      res,
-    });
+    updatedClass.save();
 
     res.status(200).json({ message: "Teacher updated successfully" });
   } catch (err) {
