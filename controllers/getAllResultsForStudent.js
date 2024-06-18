@@ -22,6 +22,7 @@ const getAllResultsForStudent = async (req, res) => {
     }
 
     const formattedResults = allResults.map((result) => ({
+      resultId: result._id,
       examId: result.exam._id,
       studentId: result.student,
       startedAt: result.exam.createdAt,
