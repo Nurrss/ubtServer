@@ -2,6 +2,14 @@ const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
 const Subjects = require("../models/Subjects");
 
+const getRandomElements = (arr, count) => {
+  if (arr.length <= count) {
+    return arr;
+  }
+  const shuffled = arr.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+
 const adminCreatesExamWithAllSubjects = async (req, res) => {
   try {
     const { started_at, finished_at } = req.body;
@@ -11,26 +19,130 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       path: "topics",
       populate: {
         path: "ru_questions kz_questions",
-        select: "_id",
+        select: "_id point", // Select only _id and point fields
       },
     });
 
-    const subjectsWithQuestions = allSubjects.map((subject) => {
-      const questions = subject.topics.flatMap((topic) => [
-        ...topic.ru_questions,
-        ...topic.kz_questions,
-      ]);
+    const subject1Id = new mongoose.Types.ObjectId("666c2efb75d5524604b5bc10");
+    const subject2Id = new mongoose.Types.ObjectId("666c2f0175d5524604b5bc13");
+    const subject3Id = new mongoose.Types.ObjectId("666c32035970933c47ccd12e");
+
+    const subject1 = allSubjects.find((subject) =>
+      subject._id.equals(subject1Id)
+    );
+    const subject2 = allSubjects.find((subject) =>
+      subject._id.equals(subject2Id)
+    );
+    const subject3 = allSubjects.find((subject) =>
+      subject._id.equals(subject3Id)
+    );
+    const optionalSubjects = allSubjects.filter(
+      (subject) =>
+        !subject._id.equals(subject1Id) &&
+        !subject._id.equals(subject2Id) &&
+        !subject._id.equals(subject3Id)
+    );
+
+    const getQuestionsByPoints = (subject, onePointCount, twoPointsCount) => {
+      const ruOnePointQuestions = [];
+      const ruTwoPointsQuestions = [];
+      const kzOnePointQuestions = [];
+      const kzTwoPointsQuestions = [];
+
+      subject.topics.forEach((topic) => {
+        topic.ru_questions.forEach((question) => {
+          if (question.point === 1) {
+            ruOnePointQuestions.push(question._id);
+          } else if (question.point === 2) {
+            ruTwoPointsQuestions.push(question._id);
+          }
+        });
+        topic.kz_questions.forEach((question) => {
+          if (question.point === 1) {
+            kzOnePointQuestions.push(question._id);
+          } else if (question.point === 2) {
+            kzTwoPointsQuestions.push(question._id);
+          }
+        });
+      });
+
+      return {
+        ru_questions: {
+          onePoint: getRandomElements(ruOnePointQuestions, onePointCount),
+          twoPoints: getRandomElements(ruTwoPointsQuestions, twoPointsCount),
+        },
+        kz_questions: {
+          onePoint: getRandomElements(kzOnePointQuestions, onePointCount),
+          twoPoints: getRandomElements(kzTwoPointsQuestions, twoPointsCount),
+        },
+      };
+    };
+
+    const createSubjectWithQuestions = (
+      subject,
+      onePointCount,
+      twoPointsCount
+    ) => {
+      const questions = getQuestionsByPoints(
+        subject,
+        onePointCount,
+        twoPointsCount
+      );
+
+      let ruQuestionNumber = 1;
+      let kzQuestionNumber = 1;
+
       return {
         _id: subject._id,
         ru_subject: subject.ru_subject,
         kz_subject: subject.kz_subject,
         topics: subject.topics.map((topic) => topic._id),
-        questions: questions.map((question) => question._id),
+        ru_questions: [
+          ...questions.ru_questions.onePoint.map((question) => ({
+            _id: question,
+            questionNumber: ruQuestionNumber++,
+          })),
+          ...questions.ru_questions.twoPoints.map((question) => ({
+            _id: question,
+            questionNumber: ruQuestionNumber++,
+          })),
+        ],
+        kz_questions: [
+          ...questions.kz_questions.onePoint.map((question) => ({
+            _id: question,
+            questionNumber: kzQuestionNumber++,
+          })),
+          ...questions.kz_questions.twoPoints.map((question) => ({
+            _id: question,
+            questionNumber: kzQuestionNumber++,
+          })),
+        ],
       };
-    });
+    };
+
+    const subjectsWithQuestions = [
+      createSubjectWithQuestions(subject1, 10, 0),
+      createSubjectWithQuestions(subject2, 10, 0),
+      createSubjectWithQuestions(subject3, 20, 0),
+      ...optionalSubjects.map((subject) =>
+        createSubjectWithQuestions(subject, 35, 5)
+      ),
+    ];
+
+    // Filter out subjects with no questions in either language
+    const filteredSubjectsWithQuestions = subjectsWithQuestions.filter(
+      (subject) =>
+        subject.ru_questions.length > 0 || subject.kz_questions.length > 0
+    );
+
+    if (filteredSubjectsWithQuestions.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No subjects with questions found" });
+    }
 
     const newExam = new Exams({
-      subjects: subjectsWithQuestions,
+      subjects: filteredSubjectsWithQuestions,
       startedAt: new Date(started_at),
       finishedAt: new Date(finished_at),
     });
@@ -42,8 +154,9 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       exam: newExam,
     });
   } catch (error) {
+    console.error(error); // Log the error for debugging
     res
-      .status(400)
+      .status(500)
       .json({ message: "Error creating exam with all subjects", error });
   }
 };

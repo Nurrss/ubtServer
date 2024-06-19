@@ -9,7 +9,12 @@ const ExamsSchema = new Schema({
       ru_subject: { type: String },
       kz_subject: { type: String },
       topics: [{ type: mongoose.Schema.Types.ObjectId, ref: "Topics" }],
-      questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Questions" }],
+      ru_questions: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "Questions" },
+      ],
+      kz_questions: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "Questions" },
+      ],
     },
   ],
   status: { type: String, enum: ["active", "inactive"], default: "active" },

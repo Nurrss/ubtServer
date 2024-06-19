@@ -5,9 +5,8 @@ const Results = require("../models/Results");
 const studentStartsExam = async (req, res) => {
   const { examId, selectedSubjectIds, studentId, language } = req.body;
 
-  console.log(language);
-
   try {
+    // Check if the student has already started this exam
     const existingResult = await Results.findOne({
       exam: examId,
       student: studentId,
@@ -19,6 +18,7 @@ const studentStartsExam = async (req, res) => {
       });
     }
 
+    // Retrieve the exam with selected subjects and their questions
     const exam = await Exams.findById(examId).populate({
       path: "subjects",
       match: {
@@ -27,11 +27,8 @@ const studentStartsExam = async (req, res) => {
         },
       },
       populate: {
-        path: "topics",
-        populate: {
-          path: language === "ru" ? "ru_questions" : "kz_questions",
-          populate: { path: "options", select: "text" },
-        },
+        path: `${language}_questions`,
+        populate: { path: "options" },
       },
     });
 
@@ -41,27 +38,23 @@ const studentStartsExam = async (req, res) => {
 
     let questionsBySubject = [];
 
+    // Iterate over subjects and collect questions from the existing exam object
     exam.subjects.forEach((subject) => {
-      let localQuestionNumber = 1; // Reset question number for each subject
-      if (
-        selectedSubjectIds.includes(subject._id.toString()) &&
-        subject.topics
-      ) {
-        const questions = subject.topics.flatMap((topic) =>
-          topic[language + "_questions"]
-            ? topic[language + "_questions"].map((question) => ({
-                _id: question._id,
-                questionNumber: localQuestionNumber++,
-                question: question.question,
-                image: question.image,
-                options: question.options.map((option) => ({
-                  _id: option._id,
-                  text: option.text,
-                })),
-                point: question.point,
-                type: question.type,
-              }))
-            : []
+      if (selectedSubjectIds.includes(subject._id.toString())) {
+        let localQuestionNumber = 1; // Reset question number for each subject
+        const questions = (subject[language + "_questions"] || []).map(
+          (question) => ({
+            _id: question._id,
+            questionNumber: localQuestionNumber++,
+            question: question.question,
+            image: question.image,
+            options: (question.options || []).map((option) => ({
+              _id: option._id,
+              text: option.text,
+            })),
+            point: question.point,
+            type: question.type,
+          })
         );
 
         questionsBySubject.push({
@@ -78,6 +71,7 @@ const studentStartsExam = async (req, res) => {
         .json({ message: "No questions found for the selected subjects." });
     }
 
+    // Create a new result for the student
     const result = new Results({
       exam: examId,
       student: studentId,
@@ -99,11 +93,21 @@ const studentStartsExam = async (req, res) => {
 
     await result.save();
 
+    // Add the result to the exam's results
     exam.results.push(result._id);
     await exam.save();
 
+    // Respond with the required format
     res.status(200).json({
-      questionsBySubject,
+      message: "Exam started successfully",
+      exam: {
+        _id: exam._id,
+        status: "active", // Assuming the exam status is set to active when started
+        startedAt: result.startedAt,
+        finishedAt: exam.finishedAt, // Assuming there's a field indicating the exam finish time
+        examType: exam.examType, // Assuming there's an examType field
+        subjects: questionsBySubject,
+      },
       resultId: result._id,
       startedAt: result.startedAt,
     });
