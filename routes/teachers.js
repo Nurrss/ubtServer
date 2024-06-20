@@ -212,10 +212,20 @@ router.route("/:id").get(async (req, res) => {
 router.route("/password/:id").put(async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(id);
     const teacher = await Teachers.findById(id);
-    const { password } = req.body;
+
+    const { password, oldPassword } = req.body;
     const userId = teacher.user;
+
+    const user = await Users.findById(userId);
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(403).json({
+        message: "Incorrect old password.",
+        success: false,
+      });
+    }
     const hashedPwd = await bcrypt.hash(password, hashConstance);
 
     const updatedUser = await Users.findByIdAndUpdate(userId, {
