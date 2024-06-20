@@ -14,7 +14,7 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
   try {
     const { examId, studentId } = answers[0];
 
-    // Fetch the result for the student
+    // Fetch the result for the student or create a new one
     let result = await Results.findOne({ exam: examId, student: studentId });
     if (!result) {
       result = new Results({
@@ -28,49 +28,41 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
       });
     }
 
-    // Fetch all questions and subjects in one go
-    const questionIds = answers.map((answer) => answer.questionId);
-    const subjectIds = answers.map((answer) => answer.subjectId);
+    // Fetch all necessary questions and subjects in one go
+    const questionIds = answers.map(
+      (answer) => new mongoose.Types.ObjectId(answer.questionId)
+    );
+    const subjectIds = answers.map(
+      (answer) => new mongoose.Types.ObjectId(answer.subjectId)
+    );
 
-    const questions = await Questions.find({
-      _id: { $in: questionIds },
-    }).select("_id point correctOptions");
-
-    const subjects = await Subjects.find({
-      _id: { $in: subjectIds },
-    }).select("ru_subject kz_subject");
+    const [questions, subjects] = await Promise.all([
+      Questions.find({ _id: { $in: questionIds } }).select(
+        "_id point correctOptions"
+      ),
+      Subjects.find({ _id: { $in: subjectIds } }).select(
+        "ru_subject kz_subject"
+      ),
+    ]);
 
     // Create maps for quick lookup
-    const questionMap = questions.reduce((acc, question) => {
-      acc[question._id.toString()] = question;
-      return acc;
-    }, {});
+    const questionMap = new Map(questions.map((q) => [q._id.toString(), q]));
+    const subjectMap = new Map(subjects.map((s) => [s._id.toString(), s]));
 
-    const subjectMap = subjects.reduce((acc, subject) => {
-      acc[subject._id.toString()] = subject;
-      return acc;
-    }, {});
-
-    // Process each answer and prepare bulk operations
-    const bulkOperations = [];
-
-    for (const answer of answers) {
+    // Process each answer and prepare the result document
+    answers.forEach((answer) => {
       const { subjectId, questionId, optionIds, questionNumber, language } =
         answer;
 
-      const question = questionMap[questionId.toString()];
-      if (!question) {
-        return res.status(404).json({ message: "Question not found" });
-      }
+      const question = questionMap.get(questionId.toString());
+      const subject = subjectMap.get(subjectId.toString());
 
-      const subject = subjectMap[subjectId.toString()];
-      if (!subject) {
-        return res.status(404).json({ message: "Subject not found" });
+      if (!question || !subject) {
+        throw new Error("Question or subject not found");
       }
 
       const subjectName =
         language === "ru" ? subject.ru_subject : subject.kz_subject;
-
       let subjectResult = result.subjects.find(
         (sub) => sub.id.toString() === subjectId.toString()
       );
@@ -92,7 +84,6 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
       const existingAnswerIndex = subjectResult.results.findIndex(
         (r) => r.questionNumber === questionNumber
       );
-
       if (existingAnswerIndex !== -1) {
         subjectResult.results[existingAnswerIndex].optionIds = optionIds.map(
           (id) => new mongoose.Types.ObjectId(id)
@@ -105,18 +96,20 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
           questionId,
         });
       }
-    }
-
-    // Bulk save the result
-    bulkOperations.push({
-      updateOne: {
-        filter: { exam: examId, student: studentId },
-        update: result,
-        upsert: true,
-      },
     });
 
-    await Results.bulkWrite(bulkOperations);
+    // Use bulkWrite for efficiency
+    const bulkOps = [
+      {
+        updateOne: {
+          filter: { exam: examId, student: studentId },
+          update: { $set: result },
+          upsert: true,
+        },
+      },
+    ];
+
+    await Results.bulkWrite(bulkOps);
 
     res.status(200).json({
       message: "Batch answers submitted or updated successfully",

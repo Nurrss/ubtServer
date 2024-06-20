@@ -18,31 +18,28 @@ const studentStartsExam = async (req, res) => {
       });
     }
 
-    // Retrieve the exam with selected subjects and their questions
-    const exam = await Exams.findById(examId).populate({
-      path: "subjects",
-      match: {
-        _id: {
-          $in: selectedSubjectIds.map((id) => new mongoose.Types.ObjectId(id)),
+    // Retrieve the exam with selected subjects and their questions in a single query
+    const exam = await Exams.findById(examId)
+      .populate({
+        path: "subjects",
+        match: { _id: { $in: selectedSubjectIds } },
+        populate: {
+          path: `${language}_questions`,
+          populate: { path: "options" },
         },
-      },
-      populate: {
-        path: `${language}_questions`,
-        populate: { path: "options" },
-      },
-    });
+      })
+      .lean(); // Use lean() to get plain JavaScript objects and improve performance
 
     if (!exam || !exam.subjects || exam.subjects.length === 0) {
       return res.status(404).json({ message: "Exam or subjects not found" });
     }
 
-    let questionsBySubject = [];
+    const questionsBySubject = exam.subjects
+      .map((subject) => {
+        if (!selectedSubjectIds.includes(subject._id.toString())) return null;
 
-    // Iterate over subjects and collect questions from the existing exam object
-    exam.subjects.forEach((subject) => {
-      if (selectedSubjectIds.includes(subject._id.toString())) {
-        let localQuestionNumber = 1; // Reset question number for each subject
-        const questions = (subject[language + "_questions"] || []).map(
+        let localQuestionNumber = 1;
+        const questions = (subject[`${language}_questions`] || []).map(
           (question) => ({
             _id: question._id,
             questionNumber: localQuestionNumber++,
@@ -57,13 +54,13 @@ const studentStartsExam = async (req, res) => {
           })
         );
 
-        questionsBySubject.push({
+        return {
           id: subject._id,
-          subjectName: subject[language + "_subject"],
-          questions: questions,
-        });
-      }
-    });
+          subjectName: subject[`${language}_subject`],
+          questions,
+        };
+      })
+      .filter((subject) => subject !== null);
 
     if (questionsBySubject.length === 0) {
       return res
@@ -75,14 +72,15 @@ const studentStartsExam = async (req, res) => {
     const result = new Results({
       exam: examId,
       student: studentId,
-      language: language, // Ensure language is set
+      language,
       subjects: questionsBySubject.map((subject) => ({
-        id: subject.id, // Corrected here
+        id: subject.id,
         name: subject.subjectName,
         results: [],
         totalPoints: 0,
         totalCorrect: 0,
         totalIncorrect: 0,
+        missedPoints: 0,
         percent: "0%",
       })),
       overallScore: 0,
@@ -97,17 +95,17 @@ const studentStartsExam = async (req, res) => {
 
     // Add the result to the exam's results
     exam.results.push(result._id);
-    await exam.save();
+    await Exams.findByIdAndUpdate(examId, { $push: { results: result._id } });
 
     // Respond with the required format
     res.status(200).json({
       message: "Exam started successfully",
       exam: {
         _id: exam._id,
-        status: "active", // Assuming the exam status is set to active when started
+        status: "active",
         startedAt: result.startedAt,
-        finishedAt: exam.finishedAt, // Assuming there's a field indicating the exam finish time
-        examType: exam.examType, // Assuming there's an examType field
+        finishedAt: exam.finishedAt,
+        examType: exam.examType,
         subjects: questionsBySubject,
       },
       resultId: result._id,

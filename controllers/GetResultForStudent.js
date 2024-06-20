@@ -10,15 +10,22 @@ const getResultForStudent = async (req, res) => {
   session.startTransaction();
 
   try {
-    const result = await Results.findOne({ exam: examId, student: studentId });
+    const result = await Results.findOne({
+      exam: examId,
+      student: studentId,
+    }).session(session);
 
     if (!result) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Result not found" });
     }
 
-    const exam = await Exams.findById(examId);
+    const exam = await Exams.findById(examId).session(session);
 
     if (!exam) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Exam not found" });
     }
 
@@ -27,33 +34,49 @@ const getResultForStudent = async (req, res) => {
     let totalIncorrect = 0;
     let totalPossiblePoints = 0;
 
+    const subjectIds = result.subjects.map((sub) => sub.id.toString());
+    const examSubjects = exam.subjects.filter((sub) =>
+      subjectIds.includes(sub._id.toString())
+    );
+
+    if (examSubjects.length !== subjectIds.length) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(404)
+        .json({ message: "Some subjects not found in exam" });
+    }
+
+    const questionIds = examSubjects.flatMap(
+      (sub) => sub[`${result.language}_questions`]
+    );
+    const questions = await Questions.find({
+      _id: { $in: questionIds },
+    }).session(session);
+
+    const questionMap = new Map(questions.map((q) => [q._id.toString(), q]));
+
     for (const subject of result.subjects) {
       let totalPoints = 0;
       let correctAnswers = 0;
       let incorrectAnswers = 0;
       let subjectPossiblePoints = 0;
 
-      const examSubject = exam.subjects.find(
+      const examSubject = examSubjects.find(
         (sub) => sub._id.toString() === subject.id.toString()
       );
-      if (!examSubject) {
-        return res.status(404).json({ message: "Subject not found in exam" });
-      }
-
       const field = `${result.language}_questions`;
-      const questionIds = examSubject[field];
+      const subjectQuestionIds = examSubject[field];
 
-      const questions = await Questions.find({ _id: { $in: questionIds } });
-      if (!questions.length) {
-        return res.status(404).json({ message: "Questions not found" });
-      }
+      const subjectQuestions = subjectQuestionIds
+        .map((id) => questionMap.get(id.toString()))
+        .filter(Boolean);
 
       const answeredQuestionIds = new Set(
         subject.results.map((answer) => answer.questionId.toString())
       );
 
-      // Add unanswered questions to the results
-      for (const question of questions) {
+      for (const question of subjectQuestions) {
         if (!answeredQuestionIds.has(question._id.toString())) {
           subject.results.push({
             questionNumber: question.questionNumber,
@@ -64,13 +87,12 @@ const getResultForStudent = async (req, res) => {
         }
       }
 
-      // Calculate results
       for (const answer of subject.results) {
-        const question = questions.find(
-          (q) => q._id.toString() === answer.questionId.toString()
-        );
+        const question = questionMap.get(answer.questionId.toString());
 
         if (!question) {
+          await session.abortTransaction();
+          session.endSession();
           return res.status(404).json({ message: "Question not found" });
         }
 
@@ -118,7 +140,7 @@ const getResultForStudent = async (req, res) => {
 
     result.missedPoints = totalPossiblePoints - overallScore;
 
-    await result.save();
+    await result.save({ session });
 
     await session.commitTransaction();
     session.endSession();
