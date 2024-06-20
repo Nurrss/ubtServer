@@ -125,7 +125,7 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       createSubjectWithQuestions(subject2, 10, 0),
       createSubjectWithQuestions(subject3, 20, 0),
       ...optionalSubjects.map((subject) =>
-        createSubjectWithQuestions(subject, 35, 5)
+        createSubjectWithQuestions(subject, 30, 10)
       ),
     ];
 

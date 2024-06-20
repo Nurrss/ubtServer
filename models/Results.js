@@ -14,6 +14,10 @@ const ResultsSchema = new Schema(
     subjects: [
       {
         name: { type: String },
+        id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Subjects",
+        },
         results: [
           {
             questionId: {
@@ -38,6 +42,7 @@ const ResultsSchema = new Schema(
     ],
     overallScore: { type: Number },
     totalCorrect: { type: Number },
+    missedPoints: { type: Number },
     totalIncorrect: { type: Number },
     overallPercent: { type: String },
     startedAt: { type: Date },

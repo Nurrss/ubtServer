@@ -77,6 +77,7 @@ const studentStartsExam = async (req, res) => {
       student: studentId,
       language: language, // Ensure language is set
       subjects: questionsBySubject.map((subject) => ({
+        id: subject.id, // Corrected here
         name: subject.subjectName,
         results: [],
         totalPoints: 0,
@@ -86,6 +87,7 @@ const studentStartsExam = async (req, res) => {
       })),
       overallScore: 0,
       totalCorrect: 0,
+      missedPoints: 0,
       totalIncorrect: 0,
       overallPercent: "0%",
       startedAt: new Date(),

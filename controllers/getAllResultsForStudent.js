@@ -3,7 +3,7 @@ const Results = require("../models/Results");
 const Students = require("../models/Students");
 
 const getAllResultsForStudent = async (req, res) => {
-  const { studentId } = req.body;
+  const studentId = req.params.id;
 
   try {
     const allResults = await Results.find({ student: studentId })

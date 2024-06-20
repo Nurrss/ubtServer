@@ -403,6 +403,6 @@ router.post("/excel", registerStudentsFromUrl);
 router.post("/startExam", studentStartsExam);
 router.post("/submitOrUpdateAnswer", submitOrUpdateBatchAnswers);
 router.post("/getResult", getResultForStudent);
-router.post("/getAllResultsForStudent", getAllResultsForStudent);
+router.get("/getAllResultsForStudent/:id", getAllResultsForStudent);
 
 module.exports = router;

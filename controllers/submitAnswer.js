@@ -72,16 +72,18 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
         language === "ru" ? subject.ru_subject : subject.kz_subject;
 
       let subjectResult = result.subjects.find(
-        (sub) => sub.name === subjectName
+        (sub) => sub.id.toString() === subjectId.toString()
       );
 
       if (!subjectResult) {
         subjectResult = {
+          id: subjectId,
           name: subjectName,
           results: [],
           totalPoints: 0,
           totalCorrect: 0,
           totalIncorrect: 0,
+          missedPoints: 0,
           percent: "0%",
         };
         result.subjects.push(subjectResult);
@@ -123,6 +125,7 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
         exam: result.exam,
         student: result.student,
         subjects: result.subjects.map((sub) => ({
+          id: sub.id,
           name: sub.name,
           results: sub.results.map((res) => ({
             questionNumber: res.questionNumber,

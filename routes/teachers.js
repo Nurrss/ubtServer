@@ -209,6 +209,26 @@ router.route("/:id").get(async (req, res) => {
   }
 });
 
+router.route("/password/:id").put(async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+    const teacher = await Teachers.findById(id);
+    const { password } = req.body;
+    const userId = teacher.user;
+    const hashedPwd = await bcrypt.hash(password, hashConstance);
+
+    const updatedUser = await Users.findByIdAndUpdate(userId, {
+      password: hashedPwd,
+    });
+    updatedUser.save();
+
+    res.status(200).json({ message: "Teacher password updated successfully" });
+  } catch (err) {
+    errorHandler(err, req, res);
+  }
+});
+
 router.route("/:id").put(async (req, res) => {
   try {
     const id = req.params.id;
