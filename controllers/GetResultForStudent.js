@@ -15,7 +15,15 @@ const getResultForStudent = async (req, res) => {
     const result = await Results.findOne({
       exam: examId,
       student: studentId,
-    }).session(session);
+    })
+      .populate({
+        path: "student",
+        populate: {
+          path: "user",
+          select: "name surname",
+        },
+      })
+      .session(session);
 
     if (!result) {
       await session.abortTransaction();
