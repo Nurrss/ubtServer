@@ -3,6 +3,7 @@ const Exams = require("../models/Exams");
 const Results = require("../models/Results");
 const Questions = require("../models/Questions");
 const Students = require("../models/Students");
+const { finished } = require("nodemailer/lib/xoauth2");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -199,6 +200,8 @@ const getResultForStudent = async (req, res) => {
         overallPercent: result.overallPercent,
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
+        startedAt: result.startedAt,
+        finishedAt: result.finishedAt,
         __v: result.__v,
       },
       top10Results,
