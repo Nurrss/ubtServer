@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
 const Results = require("../models/Results");
 const Questions = require("../models/Questions");
+const Students = require("../models/Students");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -145,6 +146,30 @@ const getResultForStudent = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Fetch and populate all results for the given exam
+    const allResults = await Results.find({ exam: examId })
+      .populate({
+        path: "student",
+        populate: {
+          path: "user",
+          select: "name surname",
+        },
+      })
+      .sort({ overallScore: -1 });
+
+    const top10Results = allResults.slice(0, 10).map((res, index) => ({
+      rank: index + 1,
+      name: res.student.user.name,
+      surname: res.student.user.surname,
+      overallPoint: res.overallScore,
+      missedPoint: res.missedPoints,
+    }));
+
+    const studentRank =
+      allResults.findIndex(
+        (res) => res.student._id.toString() === studentId.toString()
+      ) + 1;
+
     res.status(200).json({
       message: "Result retrieved and calculated successfully",
       result: {
@@ -176,6 +201,8 @@ const getResultForStudent = async (req, res) => {
         updatedAt: result.updatedAt,
         __v: result.__v,
       },
+      top10Results,
+      studentRank,
     });
   } catch (error) {
     await session.abortTransaction();
