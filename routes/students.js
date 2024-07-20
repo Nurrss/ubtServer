@@ -16,6 +16,7 @@ const { getResultForStudent } = require("../controllers/GetResultForStudent");
 const {
   getAllResultsForStudent,
 } = require("../controllers/getAllResultsForStudent");
+const { getAllActiveExams } = require("../controllers/getAllActiveExams");
 
 const student = new ApiOptimizer(Students);
 const user = new ApiOptimizer(Users);
@@ -397,6 +398,7 @@ router.route("/:id").put(async (req, res) => {
     errorHandler(err, req, res);
   }
 });
+router.get("/active-exams", getAllActiveExams);
 
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/excel", registerStudentsFromUrl);

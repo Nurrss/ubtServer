@@ -6,7 +6,7 @@ const Subjects = require("../models/Subjects");
 
 const getAllResultForExam = async (req, res) => {
   const { examId, classId, subjectId } = req.body;
-
+  //
   try {
     // Validate examId
     if (!mongoose.Types.ObjectId.isValid(examId)) {
@@ -36,10 +36,16 @@ const getAllResultForExam = async (req, res) => {
     // Fetch results with optional filters
     const results = await Results.find(query).populate({
       path: "student",
-      populate: {
-        path: "user",
-        select: "name surname",
-      },
+      populate: [
+        {
+          path: "user",
+          select: "name surname",
+        },
+        {
+          path: "class",
+          select: "class literal", // Include class and literal fields
+        },
+      ],
     });
 
     // If subjectId is provided, filter results by subject
@@ -97,11 +103,16 @@ const getAllResultForExam = async (req, res) => {
         result.student && result.student.user
           ? result.student.user.surname
           : "Unknown";
+      const className =
+        result.student && result.student.class
+          ? `${result.student.class.class}${result.student.class.literal}`
+          : "Unknown";
 
       return {
         student: {
           name: studentName,
           surname: studentSurname,
+          className: className,
         },
         overallScore: result.overallScore,
         overallPercent: result.overallPercent,
@@ -132,11 +143,16 @@ const getAllResultForExam = async (req, res) => {
           result.student && result.student.user
             ? result.student.user.surname
             : "Unknown";
+        const className =
+          result.student && result.student.class
+            ? `${result.student.class.class}${result.student.class.literal}`
+            : "Unknown";
 
         return {
           student: {
             name: studentName,
             surname: studentSurname,
+            className: className,
           },
           overallScore: result.overallScore,
           overallPercent: result.overallPercent,

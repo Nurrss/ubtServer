@@ -15,6 +15,13 @@ const ClassesSchema = new Schema({
   teacher: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teachers" }],
 });
 
+ClassesSchema.virtual("className").get(function () {
+  return `${this.class}${this.literal}`;
+});
+
+ClassesSchema.set("toJSON", { virtuals: true });
+ClassesSchema.set("toObject", { virtuals: true });
+
 ClassesSchema.pre(
   "deleteOne",
   { document: true, query: false },
