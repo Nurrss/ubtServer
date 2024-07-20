@@ -6,7 +6,7 @@ const Subjects = require("../models/Subjects");
 
 const getAllResultForExam = async (req, res) => {
   const { examId, classId, subjectId } = req.body;
-  //
+
   try {
     // Validate examId
     if (!mongoose.Types.ObjectId.isValid(examId)) {
@@ -23,145 +23,129 @@ const getAllResultForExam = async (req, res) => {
       return res.status(404).json({ message: "Exam not found" });
     }
 
-    // Build query based on provided filters
-    let query = { exam: examId };
+    // Build aggregation pipeline based on provided filters
+    let matchStage = { exam: new mongoose.Types.ObjectId(examId) };
 
     if (classId && mongoose.Types.ObjectId.isValid(classId)) {
       const studentsInClass = await Students.find({ class: classId }).select(
         "_id"
       );
-      query.student = { $in: studentsInClass.map((student) => student._id) };
+      matchStage.student = {
+        $in: studentsInClass.map((student) => student._id),
+      };
     }
 
-    // Fetch results with optional filters
-    const results = await Results.find(query).populate({
-      path: "student",
-      populate: [
-        {
-          path: "user",
-          select: "name surname",
+    let aggregationPipeline = [
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: "students",
+          localField: "student",
+          foreignField: "_id",
+          as: "studentDetails",
         },
-        {
-          path: "class",
-          select: "class literal", // Include class and literal fields
+      },
+      { $unwind: "$studentDetails" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "studentDetails.user",
+          foreignField: "_id",
+          as: "studentUserDetails",
         },
-      ],
-    });
+      },
+      { $unwind: "$studentUserDetails" },
+      {
+        $lookup: {
+          from: "classes",
+          localField: "studentDetails.class",
+          foreignField: "_id",
+          as: "studentClassDetails",
+        },
+      },
+      { $unwind: "$studentClassDetails" },
+      {
+        $project: {
+          student: {
+            name: "$studentUserDetails.name",
+            surname: "$studentUserDetails.surname",
+            className: {
+              $concat: [
+                "$studentClassDetails.class",
+                "$studentClassDetails.literal",
+              ],
+            },
+          },
+          overallScore: 1,
+          overallPercent: 1,
+          totalCorrect: 1,
+          totalIncorrect: 1,
+          subjects: 1,
+          startedAt: 1,
+          finishedAt: 1,
+          duration: 1,
+        },
+      },
+    ];
 
-    // If subjectId is provided, filter results by subject
-    let filteredResults = results;
     if (subjectId && mongoose.Types.ObjectId.isValid(subjectId)) {
       const subject = await Subjects.findById(subjectId).select(
         "ru_subject kz_subject"
       );
       const subjectName = subject.ru_subject; // Assuming language is ru
 
-      filteredResults = results.map((result) => {
-        const subjectResult = result.subjects.find(
-          (sub) => sub.name === subjectName
-        );
-        return {
-          ...result._doc,
-          subjects: subjectResult ? [subjectResult] : [],
-        };
+      aggregationPipeline.push({
+        $addFields: {
+          subjects: {
+            $filter: {
+              input: "$subjects",
+              as: "subject",
+              cond: { $eq: ["$$subject.name", subjectName] },
+            },
+          },
+        },
       });
     }
 
+    // Execute aggregation pipeline
+    const results = await Results.aggregate(aggregationPipeline);
+
     // Calculate the ranks
-    filteredResults.sort((a, b) => b.overallScore - a.overallScore);
-    filteredResults = filteredResults.map((result, index) => ({
-      ...result._doc,
-      rank: index + 1,
-    }));
+    results.sort((a, b) => b.overallScore - a.overallScore);
+    results.forEach((result, index) => {
+      result.rank = index + 1;
+    });
 
     // Calculate the top 10 students
-    const top10Results = filteredResults.slice(0, 10);
+    const top10Results = results.slice(0, 10);
 
     // Calculate additional metrics
-    const totalStudents = filteredResults.length;
-    const passedStudents = filteredResults.filter(
+    const totalStudents = results.length;
+    const passedStudents = results.filter(
       (result) => parseFloat(result.overallPercent) >= 50
     ).length;
     const averageScore = (
-      filteredResults.reduce((sum, result) => sum + result.overallScore, 0) /
+      results.reduce((sum, result) => sum + result.overallScore, 0) /
       totalStudents
     ).toFixed(2);
     const averagePercent = (
-      filteredResults.reduce(
+      results.reduce(
         (sum, result) => sum + parseFloat(result.overallPercent),
         0
       ) / totalStudents
     ).toFixed(2);
 
-    // Format the results to only include the required fields
-    const formattedResults = filteredResults.map((result) => {
-      const studentName =
-        result.student && result.student.user
-          ? result.student.user.name
-          : "Unknown";
-      const studentSurname =
-        result.student && result.student.user
-          ? result.student.user.surname
-          : "Unknown";
-      const className =
-        result.student && result.student.class
-          ? `${result.student.class.class}${result.student.class.literal}`
-          : "Unknown";
-
-      return {
-        student: {
-          name: studentName,
-          surname: studentSurname,
-          className: className,
-        },
+    res.status(200).json({
+      message: "Results fetched successfully",
+      top10Results: top10Results.map((result) => ({
+        student: result.student,
         overallScore: result.overallScore,
         overallPercent: result.overallPercent,
         totalCorrect: result.totalCorrect,
         totalIncorrect: result.totalIncorrect,
         rank: result.rank,
-        subjects: result.subjects.map((sub) => ({
-          name: sub.name,
-          totalPoints: sub.totalPoints,
-          totalCorrect: sub.totalCorrect,
-          totalIncorrect: sub.totalIncorrect,
-          percent: sub.percent,
-        })),
-        startedAt: result.startedAt,
-        finishedAt: result.finishedAt,
-        duration: result.duration,
-      };
-    });
-
-    res.status(200).json({
-      message: "Results fetched successfully",
-      top10Results: top10Results.map((result) => {
-        const studentName =
-          result.student && result.student.user
-            ? result.student.user.name
-            : "Unknown";
-        const studentSurname =
-          result.student && result.student.user
-            ? result.student.user.surname
-            : "Unknown";
-        const className =
-          result.student && result.student.class
-            ? `${result.student.class.class}${result.student.class.literal}`
-            : "Unknown";
-
-        return {
-          student: {
-            name: studentName,
-            surname: studentSurname,
-            className: className,
-          },
-          overallScore: result.overallScore,
-          overallPercent: result.overallPercent,
-          totalCorrect: result.totalCorrect,
-          totalIncorrect: result.totalIncorrect,
-          rank: result.rank,
-        };
-      }),
-      results: formattedResults,
+      })),
+      results,
       metrics: {
         totalStudents,
         passedStudents,
