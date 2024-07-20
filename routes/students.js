@@ -343,6 +343,8 @@ const modelName = "Students";
  *                     description: Detailed error message
  */
 
+router.get("/activeExams", getAllActiveExams);
+
 router.route("/").get(async (req, res) => {
   try {
     await student.getAll(req, res);
@@ -398,7 +400,6 @@ router.route("/:id").put(async (req, res) => {
     errorHandler(err, req, res);
   }
 });
-router.get("/active-exams", getAllActiveExams);
 
 // router.post("/getexam/:examId", getExamController.getExamQuestionsForStudent);
 router.post("/excel", registerStudentsFromUrl);
