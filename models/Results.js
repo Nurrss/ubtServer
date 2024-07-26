@@ -38,6 +38,7 @@ const ResultsSchema = new Schema(
         totalCorrect: { type: Number },
         totalIncorrect: { type: Number },
         percent: { type: String },
+        missedPoints: { type: Number },
       },
     ],
     overallScore: { type: Number },
@@ -47,7 +48,9 @@ const ResultsSchema = new Schema(
     overallPercent: { type: String },
     startedAt: { type: Date },
     finishedAt: { type: Date },
-    duration: { type: Number },
+    durationInHours: { type: Number },
+    durationInMinutes: { type: Number },
+    durationInSeconds: { type: Number },
     language: {
       type: String,
       required: true,

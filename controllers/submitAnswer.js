@@ -25,6 +25,7 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
         totalCorrect: 0,
         totalIncorrect: 0,
         overallPercent: "0%",
+        startedAt: new Date(),
       });
     }
 
@@ -98,6 +99,26 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
       }
     });
 
+    // Calculate the duration
+    const start = result.startedAt;
+    const end = new Date();
+    result.finishedAt = end;
+
+    const durationInMillis = end - start;
+
+    const durationInSeconds = Math.floor(durationInMillis / 1000);
+    const durationInMinutes = Math.floor(durationInMillis / (1000 * 60));
+    const durationInHours = Math.floor(durationInMillis / (1000 * 60 * 60));
+
+    // Remaining hours, minutes, and seconds after calculating total durations
+    const remainingHours = durationInHours % 24;
+    const remainingMinutes = durationInMinutes % 60;
+    const remainingSeconds = durationInSeconds % 60;
+
+    result.durationInHours = remainingHours;
+    result.durationInMinutes = remainingMinutes;
+    result.durationInSeconds = remainingSeconds;
+
     // Use bulkWrite for efficiency
     const bulkOps = [
       {
@@ -129,6 +150,11 @@ const submitOrUpdateBatchAnswers = async (req, res) => {
         })),
         createdAt: result.createdAt,
         updatedAt: result.updatedAt,
+        startedAt: result.startedAt,
+        finishedAt: result.finishedAt,
+        durationInHours: result.durationInHours,
+        durationInMinutes: result.durationInMinutes,
+        durationInSeconds: result.durationInSeconds,
         __v: result.__v,
       },
     });

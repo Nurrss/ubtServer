@@ -2,24 +2,33 @@ const mongoose = require("mongoose");
 const Exams = require("../models/Exams");
 const Subjects = require("../models/Subjects");
 
+// Improved shuffle function
+const shuffleArray = (arr) => {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
 const getRandomElements = (arr, count) => {
   if (arr.length <= count) {
     return arr;
   }
-  const shuffled = arr.sort(() => 0.5 - Math.random());
+  const shuffled = shuffleArray(arr);
   return shuffled.slice(0, count);
 };
 
 const adminCreatesExamWithAllSubjects = async (req, res) => {
   try {
-    const { started_at, finished_at } = req.body;
+    const { started_at, finished_at, examType } = req.body;
 
     // Retrieve all subjects with their associated topics and questions
     const allSubjects = await Subjects.find().populate({
       path: "topics",
       populate: {
         path: "ru_questions kz_questions",
-        select: "_id point", // Select only _id and point fields
+        select: "_id point createdAt", // Select _id, point, and createdAt fields
       },
     });
 
@@ -50,7 +59,12 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       const kzTwoPointsQuestions = [];
 
       subject.topics.forEach((topic) => {
+        const now = new Date();
+        const lastMonth = new Date(now.setMonth(now.getMonth() - 1));
+
         topic.ru_questions.forEach((question) => {
+          if (examType === "last" && new Date(question.createdAt) < lastMonth)
+            return;
           if (question.point === 1) {
             ruOnePointQuestions.push(question._id);
           } else if (question.point === 2) {
@@ -58,6 +72,8 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
           }
         });
         topic.kz_questions.forEach((question) => {
+          if (examType === "last" && new Date(question.createdAt) < lastMonth)
+            return;
           if (question.point === 1) {
             kzOnePointQuestions.push(question._id);
           } else if (question.point === 2) {
@@ -129,7 +145,6 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       ),
     ];
 
-    // Filter out subjects with no questions in either language
     const filteredSubjectsWithQuestions = subjectsWithQuestions.filter(
       (subject) =>
         subject.ru_questions.length > 0 || subject.kz_questions.length > 0
@@ -145,6 +160,7 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
       subjects: filteredSubjectsWithQuestions,
       startedAt: new Date(started_at),
       finishedAt: new Date(finished_at),
+      examType: examType,
     });
 
     await newExam.save();
