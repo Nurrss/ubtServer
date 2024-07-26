@@ -8,3 +8,5 @@
 20240612	12:25:14	891f0cce-d9d1-44bc-a38b-b78542dd4c3d	undefined: ESERVFAIL	querySrv	_mongodb._tcp.onlineubtcluster.okqtin6.mongodb.net
 20240612	15:00:51	fe54b717-0e63-4940-98de-c91397c1d733	undefined: ESERVFAIL	querySrv	_mongodb._tcp.onlineubtcluster.okqtin6.mongodb.net
 20240612	15:01:14	926fbae9-b681-4aa2-9f81-cd58d2167175	undefined: ESERVFAIL	querySrv	_mongodb._tcp.onlineubtcluster.okqtin6.mongodb.net
+20240726	15:49:57	4f02e9b3-94a9-48e5-a8bb-3665786ce254	undefined: ESERVFAIL	querySrv	_mongodb._tcp.onlineubtcluster.okqtin6.mongodb.net
+20240726	15:50:45	f45577b4-9272-4934-a1f4-9bf3e4992ec7	undefined: ESERVFAIL	queryTxt	onlineubtcluster.okqtin6.mongodb.net
