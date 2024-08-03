@@ -8,7 +8,7 @@ const createQuestionWithOptions = async (req, res) => {
   session.startTransaction();
   try {
     const { question, image, options, type, topicId, language } = req.body;
-
+    //
     const createdOptions = [];
     let correctOptionsIds = [];
     let ball = 0;
