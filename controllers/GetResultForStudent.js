@@ -3,7 +3,6 @@ const Exams = require("../models/Exams");
 const Results = require("../models/Results");
 const Questions = require("../models/Questions");
 const Students = require("../models/Students");
-const { finished } = require("nodemailer/lib/xoauth2");
 
 const getResultForStudent = async (req, res) => {
   const { examId, studentId } = req.body;
@@ -101,9 +100,9 @@ const getResultForStudent = async (req, res) => {
         const question = questionMap.get(answer.questionId.toString());
 
         if (!question) {
-          await session.abortTransaction();
-          session.endSession();
-          return res.status(404).json({ message: "Question not found" });
+          // If the question is not found, continue without aborting
+          console.warn(`Question with ID ${answer.questionId} not found`);
+          continue;
         }
 
         subjectPossiblePoints += question.point;
