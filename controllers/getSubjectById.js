@@ -26,43 +26,19 @@ async function getTopicsWithQuestionCount(topicIds) {
       },
     },
     {
-      $unwind: "$ruQuestionsInfo",
-    },
-    {
       $lookup: {
         from: "options",
         localField: "ruQuestionsInfo.options",
         foreignField: "_id",
-        as: "ruQuestionsInfo.options",
+        as: "ruQuestionsOptions",
       },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        kz_title: { $first: "$kz_title" },
-        ru_title: { $first: "$ru_title" },
-        ruQuestionsInfo: { $push: "$ruQuestionsInfo" },
-        kzQuestionsInfo: { $first: "$kzQuestionsInfo" },
-      },
-    },
-    {
-      $unwind: "$kzQuestionsInfo",
     },
     {
       $lookup: {
         from: "options",
         localField: "kzQuestionsInfo.options",
         foreignField: "_id",
-        as: "kzQuestionsInfo.options",
-      },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        kz_title: { $first: "$kz_title" },
-        ru_title: { $first: "$ru_title" },
-        ruQuestionsInfo: { $first: "$ruQuestionsInfo" },
-        kzQuestionsInfo: { $push: "$kzQuestionsInfo" },
+        as: "kzQuestionsOptions",
       },
     },
     {
