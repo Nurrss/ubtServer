@@ -3,6 +3,7 @@ const _ = require("lodash");
 
 const Questions = require("../models/Questions");
 const Options = require("../models/Options");
+const Topics = require("../models/Topics");
 const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
@@ -10,9 +11,14 @@ const { createQuestionWithOptions } = require("../controllers/createQuestion");
 const {
   updateQuestionWithOptions,
 } = require("../controllers/updateQuestionWithOptions");
+const { uploadFileToDrive } = require("../controllers/googleDriveService");
+const express = require("express");
+const multer = require("multer");
+const mongoose = require("mongoose");
 
 const questions = new ApiOptimizer(Questions);
 const modelName = "Questions";
+const upload = multer();
 
 /**
  * @swagger
@@ -173,6 +179,128 @@ const modelName = "Questions";
  *       404:
  *         description: Question not found
  */
+
+router.post(
+  "/createQuestionWithImage",
+  upload.single("image"),
+  async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const {
+        question,
+        options: optionsString,
+        type,
+        topicId,
+        language,
+      } = req.body;
+      let imageUrl = null;
+      let options = [];
+
+      try {
+        options = JSON.parse(optionsString);
+      } catch (e) {
+        throw new Error("Options must be a valid JSON string");
+      }
+
+      if (!Array.isArray(options)) {
+        throw new Error("Options must be an array");
+      }
+
+      // Загрузка изображения на Google Drive
+      if (req.file) {
+        const file = req.file;
+        const result = await uploadFileToDrive(file);
+        imageUrl = result.webViewLink; // Ссылка на изображение
+        console.log("Image uploaded to Google Drive: ", imageUrl);
+      }
+
+      console.log(options);
+      console.log(typeof options);
+      const createdOptions = [];
+      let correctOptionsIds = [];
+      let ball = 0;
+      for (const optionData of options) {
+        const option = new Options({
+          text: optionData.text,
+          isCorrect: optionData.isCorrect,
+        });
+        await option.save({ session });
+        createdOptions.push(option);
+        if (option.isCorrect) await correctOptionsIds.push(option._id);
+      }
+
+      if (type === "twoPoints" && correctOptionsIds.length !== 2) {
+        throw new Error(
+          "Two correct options are required for 'twoPoints' type questions"
+        );
+      } else if (type === "onePoint" && correctOptionsIds.length !== 1) {
+        throw new Error(
+          "One correct option is required for 'onePoint' type questions"
+        );
+      }
+
+      if (type === "twoPoints" && correctOptionsIds.length == 2) {
+        ball = 2;
+      } else if (type === "onePoint" && correctOptionsIds.length == 1) {
+        ball = 1;
+      }
+
+      // Создание вопроса
+      const newQuestion = new Questions({
+        question,
+        image: imageUrl,
+        options: createdOptions.map((option) => option._id),
+        point: ball,
+        type,
+        correctOptions: correctOptionsIds,
+        language,
+      });
+
+      await newQuestion.save({ session });
+      console.log("Question saved: ", newQuestion);
+
+      const topic = await Topics.findById(topicId);
+      if (!topic) {
+        throw new Error(`Topic with ID ${topicId} not found`);
+      }
+      if (language === "ru") {
+        topic.ru_questions.push(newQuestion._id);
+      } else if (language === "kz") {
+        topic.kz_questions.push(newQuestion._id);
+      }
+      await topic.save({ session });
+      console.log("Topic updated: ", topic);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(201).json({
+        message: "Question and options added successfully",
+        question: {
+          _id: newQuestion._id,
+          question: newQuestion.question,
+          image: newQuestion.image,
+          options: createdOptions.map((option) => ({
+            _id: option._id,
+            text: option.text,
+          })),
+          point: newQuestion.point,
+          type: newQuestion.type,
+          correctOptions: correctOptionsIds,
+        },
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error("Error during transaction: ", error);
+      res
+        .status(400)
+        .json({ message: "Error adding question and options", error });
+    }
+  }
+);
 
 router.route("/").get(async (req, res) => {
   try {
