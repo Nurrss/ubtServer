@@ -42,6 +42,51 @@ async function getTopicsWithQuestionCount(topicIds) {
       },
     },
     {
+      $addFields: {
+        // Combine options with their details
+        "ruQuestionsInfo.options": {
+          $map: {
+            input: "$ruQuestionsInfo",
+            as: "question",
+            in: {
+              $map: {
+                input: "$$question.options",
+                as: "optionId",
+                in: {
+                  $arrayElemAt: [
+                    "$ruQuestionsOptions",
+                    {
+                      $indexOfArray: ["$ruQuestionsOptions._id", "$$optionId"],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        "kzQuestionsInfo.options": {
+          $map: {
+            input: "$kzQuestionsInfo",
+            as: "question",
+            in: {
+              $map: {
+                input: "$$question.options",
+                as: "optionId",
+                in: {
+                  $arrayElemAt: [
+                    "$kzQuestionsOptions",
+                    {
+                      $indexOfArray: ["$kzQuestionsOptions._id", "$$optionId"],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    {
       $project: {
         kz_title: 1,
         ru_title: 1,
