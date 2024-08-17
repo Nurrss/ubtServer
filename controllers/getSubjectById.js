@@ -43,105 +43,70 @@ async function getTopicsWithQuestionCount(topicIds) {
     },
     {
       $addFields: {
-        // Combine options with their details
-        "ruQuestionsInfo.options": {
+        ruQuestionsInfo: {
           $map: {
             input: "$ruQuestionsInfo",
             as: "question",
             in: {
-              $map: {
-                input: "$$question.options",
-                as: "optionId",
-                in: {
-                  $arrayElemAt: [
-                    "$ruQuestionsOptions",
-                    {
-                      $indexOfArray: ["$ruQuestionsOptions._id", "$$optionId"],
-                    },
-                  ],
+              _id: "$$question._id",
+              question: "$$question.question",
+              image: "$$question.image",
+              point: "$$question.point",
+              type: "$$question.type",
+              correctOptions: "$$question.correctOptions",
+              options: {
+                $map: {
+                  input: "$$question.options",
+                  as: "optionId",
+                  in: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$ruQuestionsOptions",
+                          as: "option",
+                          cond: { $eq: ["$$option._id", "$$optionId"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
                 },
               },
+              language: "$$question.language",
             },
           },
         },
-        "kzQuestionsInfo.options": {
+        kzQuestionsInfo: {
           $map: {
             input: "$kzQuestionsInfo",
             as: "question",
             in: {
-              $map: {
-                input: "$$question.options",
-                as: "optionId",
-                in: {
-                  $arrayElemAt: [
-                    "$kzQuestionsOptions",
-                    {
-                      $indexOfArray: ["$kzQuestionsOptions._id", "$$optionId"],
-                    },
-                  ],
+              _id: "$$question._id",
+              question: "$$question.question",
+              image: "$$question.image",
+              point: "$$question.point",
+              type: "$$question.type",
+              correctOptions: "$$question.correctOptions",
+              options: {
+                $map: {
+                  input: "$$question.options",
+                  as: "optionId",
+                  in: {
+                    $arrayElemAt: [
+                      {
+                        $filter: {
+                          input: "$kzQuestionsOptions",
+                          as: "option",
+                          cond: { $eq: ["$$option._id", "$$optionId"] },
+                        },
+                      },
+                      0,
+                    ],
+                  },
                 },
               },
+              language: "$$question.language",
             },
-          },
-        },
-      },
-    },
-    {
-      $project: {
-        kz_title: 1,
-        ru_title: 1,
-        ruQuestionsInfo: 1,
-        kzQuestionsInfo: 1,
-        ru_twoPointsQuestionIds: {
-          $map: {
-            input: {
-              $filter: {
-                input: "$ruQuestionsInfo",
-                as: "question",
-                cond: { $eq: ["$$question.type", "twoPoints"] },
-              },
-            },
-            as: "question",
-            in: "$$question._id",
-          },
-        },
-        ru_onePointQuestionIds: {
-          $map: {
-            input: {
-              $filter: {
-                input: "$ruQuestionsInfo",
-                as: "question",
-                cond: { $eq: ["$$question.type", "onePoint"] },
-              },
-            },
-            as: "question",
-            in: "$$question._id",
-          },
-        },
-        kz_twoPointsQuestionIds: {
-          $map: {
-            input: {
-              $filter: {
-                input: "$kzQuestionsInfo",
-                as: "question",
-                cond: { $eq: ["$$question.type", "twoPoints"] },
-              },
-            },
-            as: "question",
-            in: "$$question._id",
-          },
-        },
-        kz_onePointQuestionIds: {
-          $map: {
-            input: {
-              $filter: {
-                input: "$kzQuestionsInfo",
-                as: "question",
-                cond: { $eq: ["$$question.type", "onePoint"] },
-              },
-            },
-            as: "question",
-            in: "$$question._id",
           },
         },
       },
