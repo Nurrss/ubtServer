@@ -7,6 +7,7 @@ const ApiOptimizer = require("../api");
 const errorHandler = require("../middleware/errorHandler");
 const checkTeacher = require("../middleware/checkRole");
 const { getSubjectById } = require("../controllers/getSubjectById");
+const { getSubjectByIdV2 } = require("../controllers/getSubjectByIdV2");
 
 const subjects = new ApiOptimizer(Subjects);
 const modelName = "Subjects";
@@ -162,6 +163,7 @@ router.route("/:id").delete(async (req, res) => {
 });
 
 router.route("/:id").get(getSubjectById);
+router.route("/v2/:id").get(getSubjectByIdV2);
 
 router.route("/:id").put(async (req, res) => {
   try {
