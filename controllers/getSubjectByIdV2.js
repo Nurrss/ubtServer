@@ -1,6 +1,7 @@
 const Subjects = require("../models/Subjects");
 const mongoose = require("mongoose");
 const Topic = require("../models/Topics");
+
 async function getTopicsWithQuestionCount(topicIds) {
   return Topic.aggregate([
     {
@@ -25,43 +26,19 @@ async function getTopicsWithQuestionCount(topicIds) {
       },
     },
     {
-      $unwind: "$ruQuestionsInfo",
-    },
-    {
       $lookup: {
         from: "options",
         localField: "ruQuestionsInfo.options",
         foreignField: "_id",
-        as: "ruQuestionsInfo.options",
+        as: "ruQuestionsOptions",
       },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        kz_title: { $first: "$kz_title" },
-        ru_title: { $first: "$ru_title" },
-        ruQuestionsInfo: { $push: "$ruQuestionsInfo" },
-        kzQuestionsInfo: { $first: "$kzQuestionsInfo" },
-      },
-    },
-    {
-      $unwind: "$kzQuestionsInfo",
     },
     {
       $lookup: {
         from: "options",
         localField: "kzQuestionsInfo.options",
         foreignField: "_id",
-        as: "kzQuestionsInfo.options",
-      },
-    },
-    {
-      $group: {
-        _id: "$_id",
-        kz_title: { $first: "$kz_title" },
-        ru_title: { $first: "$ru_title" },
-        ruQuestionsInfo: { $first: "$ruQuestionsInfo" },
-        kzQuestionsInfo: { $push: "$kzQuestionsInfo" },
+        as: "kzQuestionsOptions",
       },
     },
     {
@@ -126,18 +103,22 @@ async function getTopicsWithQuestionCount(topicIds) {
     },
   ]);
 }
+
 async function getSubjectByIdV2(req, res) {
   try {
     const subject = await Subjects.findById(req.params.id).populate({
       path: "topics",
       select: "_id kz_title ru_title",
     });
+
     if (!subject) {
       return res.status(404).send({ message: "Subject not found" });
     }
+
     const topicsWithCounts = await getTopicsWithQuestionCount(
       subject.topics.map((topic) => topic._id)
     );
+
     res.json({
       ...subject.toObject(),
       topics: topicsWithCounts,
@@ -147,4 +128,5 @@ async function getSubjectByIdV2(req, res) {
     res.status(500).send({ message: "Server error" });
   }
 }
+
 module.exports = { getSubjectByIdV2 };
