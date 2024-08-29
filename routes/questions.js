@@ -302,6 +302,144 @@ router.post(
   }
 );
 
+router.put(
+  "/updateQuestionWithImage/:questionId",
+  upload.single("image"),
+  async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const { questionId } = req.params;
+      const {
+        question,
+        options: optionsString,
+        type,
+        topicId,
+        language,
+      } = req.body;
+      let imageUrl = null;
+      let options = [];
+
+      try {
+        options = JSON.parse(optionsString);
+      } catch (e) {
+        throw new Error("Options must be a valid JSON string");
+      }
+
+      if (!Array.isArray(options)) {
+        throw new Error("Options must be an array");
+      }
+
+      // Find the question to update
+      const existingQuestion = await Questions.findById(questionId).session(
+        session
+      );
+      if (!existingQuestion) {
+        throw new Error(`Question with ID ${questionId} not found`);
+      }
+
+      // Update image if a new one is uploaded
+      if (req.file) {
+        const file = req.file;
+        const result = await uploadFileToDrive(file);
+        imageUrl = result.webViewLink; // New image URL
+        console.log("Image uploaded to Google Drive: ", imageUrl);
+        existingQuestion.image = imageUrl;
+      }
+
+      // Remove old options associated with the question
+      await Options.deleteMany({
+        _id: { $in: existingQuestion.options },
+      }).session(session);
+
+      // Create and save new options
+      const updatedOptions = [];
+      let correctOptionsIds = [];
+      let ball = 0;
+      for (const optionData of options) {
+        const option = new Options({
+          text: optionData.text,
+          isCorrect: optionData.isCorrect,
+        });
+        await option.save({ session });
+        updatedOptions.push(option);
+        if (option.isCorrect) await correctOptionsIds.push(option._id);
+      }
+
+      if (type === "twoPoints" && correctOptionsIds.length !== 2) {
+        throw new Error(
+          "Two correct options are required for 'twoPoints' type questions"
+        );
+      } else if (type === "onePoint" && correctOptionsIds.length !== 1) {
+        throw new Error(
+          "One correct option is required for 'onePoint' type questions"
+        );
+      }
+
+      if (type === "twoPoints" && correctOptionsIds.length == 2) {
+        ball = 2;
+      } else if (type === "onePoint" && correctOptionsIds.length == 1) {
+        ball = 1;
+      }
+
+      // Update the question details
+      existingQuestion.question = question;
+      existingQuestion.options = updatedOptions.map((option) => option._id);
+      existingQuestion.point = ball;
+      existingQuestion.type = type;
+      existingQuestion.correctOptions = correctOptionsIds;
+      existingQuestion.language = language;
+
+      await existingQuestion.save({ session });
+      console.log("Question updated: ", existingQuestion);
+
+      const topic = await Topics.findById(topicId).session(session);
+      if (!topic) {
+        throw new Error(`Topic with ID ${topicId} not found`);
+      }
+
+      // Add the updated question to the correct topic language array if not already present
+      if (language === "ru" && !topic.ru_questions.includes(questionId)) {
+        topic.ru_questions.push(questionId);
+      } else if (
+        language === "kz" &&
+        !topic.kz_questions.includes(questionId)
+      ) {
+        topic.kz_questions.push(questionId);
+      }
+      await topic.save({ session });
+      console.log("Topic updated: ", topic);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(200).json({
+        message: "Question and options updated successfully",
+        question: {
+          _id: existingQuestion._id,
+          question: existingQuestion.question,
+          image: existingQuestion.image,
+          options: updatedOptions.map((option) => ({
+            _id: option._id,
+            text: option.text,
+          })),
+          point: existingQuestion.point,
+          type: existingQuestion.type,
+          correctOptions: correctOptionsIds,
+        },
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      console.error("Error during transaction: ", error);
+      res
+        .status(400)
+        .json({ message: "Error updating question and options", error });
+    }
+  }
+);
+
 router.route("/").get(async (req, res) => {
   try {
     await questions.getAll(req, res);
