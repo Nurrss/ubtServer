@@ -8,28 +8,27 @@ const getAllResultForExam = async (req, res) => {
   const { examId, classId, subjectId } = req.body;
 
   try {
-    // Validate examId
     if (!mongoose.Types.ObjectId.isValid(examId)) {
       return res.status(400).json({ message: "Invalid exam ID" });
     }
 
-    // Fetch the exam details
-    const exam = await Exams.findById(examId).populate({
-      path: "subjects",
-      select: "questions ru_subject kz_subject",
-    });
+    const examPromise = Exams.findById(examId).select("subjects").lean();
+    const studentsInClassPromise =
+      classId && mongoose.Types.ObjectId.isValid(classId)
+        ? Students.find({ class: classId }).select("_id").lean()
+        : Promise.resolve([]);
+
+    const [exam, studentsInClass] = await Promise.all([
+      examPromise,
+      studentsInClassPromise,
+    ]);
 
     if (!exam) {
       return res.status(404).json({ message: "Exam not found" });
     }
 
-    // Build aggregation pipeline based on provided filters
     let matchStage = { exam: new mongoose.Types.ObjectId(examId) };
-
-    if (classId && mongoose.Types.ObjectId.isValid(classId)) {
-      const studentsInClass = await Students.find({ class: classId }).select(
-        "_id"
-      );
+    if (studentsInClass.length > 0) {
       matchStage.student = {
         $in: studentsInClass.map((student) => student._id),
       };
@@ -89,10 +88,10 @@ const getAllResultForExam = async (req, res) => {
     ];
 
     if (subjectId && mongoose.Types.ObjectId.isValid(subjectId)) {
-      const subject = await Subjects.findById(subjectId).select(
-        "ru_subject kz_subject"
-      );
-      const subjectName = subject.ru_subject; // Assuming language is ru
+      const subject = await Subjects.findById(subjectId)
+        .select("ru_subject")
+        .lean();
+      const subjectName = subject.ru_subject;
 
       aggregationPipeline.push({
         $addFields: {
@@ -107,27 +106,24 @@ const getAllResultForExam = async (req, res) => {
       });
     }
 
-    // Execute aggregation pipeline
     const results = await Results.aggregate(aggregationPipeline);
 
-    // Calculate the ranks
     results.sort((a, b) => b.overallScore - a.overallScore);
     results.forEach((result, index) => {
       result.rank = index + 1;
     });
 
-    // Calculate the top 10 students
     const top10Results = results.slice(0, 10);
-
-    // Calculate additional metrics
     const totalStudents = results.length;
     const passedStudents = results.filter(
       (result) => parseFloat(result.overallPercent) >= 50
     ).length;
+
     const averageScore = (
       results.reduce((sum, result) => sum + result.overallScore, 0) /
       totalStudents
     ).toFixed(2);
+
     const averagePercent = (
       results.reduce(
         (sum, result) => sum + parseFloat(result.overallPercent),
