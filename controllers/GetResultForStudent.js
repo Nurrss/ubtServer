@@ -108,16 +108,80 @@ const getResultForStudent = async (req, res) => {
         subjectPossiblePoints += question.point;
         totalPossiblePoints += question.point;
 
-        const isCorrect =
-          question.correctOptions.length === answer.optionIds.length &&
-          question.correctOptions.every((opt) =>
-            answer.optionIds.includes(opt.toString())
-          );
+        const correctOptionCount = question.correctOptions.length;
+        const selectedOptionCount = answer.optionIds.length;
+
+        let isCorrect = false;
+        let awardedPoints = 0;
+
+        if (question.point === 2) {
+          // Two-points question logic
+          if (correctOptionCount === 1) {
+            // Scenario 1: 1 correct option
+            if (
+              selectedOptionCount === 1 &&
+              question.correctOptions.includes(answer.optionIds[0].toString())
+            ) {
+              awardedPoints = 2;
+            } else if (
+              selectedOptionCount === 2 &&
+              question.correctOptions.includes(answer.optionIds[0].toString())
+            ) {
+              awardedPoints = 1;
+            }
+          } else if (correctOptionCount === 2) {
+            // Scenario 2: 2 correct options
+            const correctSelectedOptions = answer.optionIds.filter((opt) =>
+              question.correctOptions.includes(opt.toString())
+            ).length;
+
+            if (correctSelectedOptions === 2 && selectedOptionCount === 2) {
+              awardedPoints = 2;
+            } else if (
+              correctSelectedOptions === 2 &&
+              selectedOptionCount === 3
+            ) {
+              awardedPoints = 1;
+            } else if (
+              correctSelectedOptions === 1 &&
+              selectedOptionCount <= 2
+            ) {
+              awardedPoints = 1;
+            }
+          } else if (correctOptionCount === 3) {
+            // Scenario 3: 3 correct options
+            const correctSelectedOptions = answer.optionIds.filter((opt) =>
+              question.correctOptions.includes(opt.toString())
+            ).length;
+
+            if (correctSelectedOptions === 3 && selectedOptionCount === 3) {
+              awardedPoints = 3;
+            } else if (
+              correctSelectedOptions === 2 &&
+              selectedOptionCount <= 3
+            ) {
+              awardedPoints = 1;
+            }
+          }
+
+          isCorrect = awardedPoints > 0;
+        } else {
+          // Existing logic for non-two-points questions
+          isCorrect =
+            question.correctOptions.length === selectedOptionCount &&
+            question.correctOptions.every((opt) =>
+              answer.optionIds.includes(opt.toString())
+            );
+
+          if (isCorrect) {
+            awardedPoints = question.point;
+          }
+        }
 
         answer.isCorrect = isCorrect;
 
         if (isCorrect) {
-          totalPoints += question.point;
+          totalPoints += awardedPoints;
           correctAnswers++;
         } else {
           incorrectAnswers++;
