@@ -134,6 +134,7 @@ router.post("/add", async (req, res) => {
         success: false,
       });
     }
+
     let subject = await Subjects.findOne({ _id: subjectId });
     console.log(subject);
     if (!subject) {
@@ -152,30 +153,43 @@ router.post("/add", async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    let classForTeacher = await Classes.findOne({
-      class: classNum,
-      literal: literal,
-    });
-
-    if (!classForTeacher) {
-      const newClass = new Classes({
+    let savedTeacher;
+    if (classNum && literal) {
+      // If classNum and literal are provided, find or create the class
+      let classForTeacher = await Classes.findOne({
         class: classNum,
-        literal,
-        students: [],
+        literal: literal,
       });
-      classForTeacher = await newClass.save();
+
+      if (!classForTeacher) {
+        const newClass = new Classes({
+          class: classNum,
+          literal,
+          students: [],
+        });
+        classForTeacher = await newClass.save();
+      }
+
+      // Create the teacher with the associated class
+      const newTeacher = new Teachers({
+        user: savedUser._id,
+        class: classForTeacher._id,
+        subject: subject._id,
+      });
+
+      savedTeacher = await newTeacher.save();
+
+      classForTeacher.teacher = savedTeacher._id;
+      await classForTeacher.save();
+    } else {
+      // If classNum and literal are not provided, create the teacher without a class
+      const newTeacher = new Teachers({
+        user: savedUser._id,
+        subject: subject._id,
+      });
+
+      savedTeacher = await newTeacher.save();
     }
-
-    const newTeacher = new Teachers({
-      user: savedUser._id,
-      class: classForTeacher._id,
-      subject: subject._id,
-    });
-
-    const savedTeacher = await newTeacher.save();
-
-    classForTeacher.teacher = savedTeacher._id;
-    await classForTeacher.save();
 
     res.status(201).json(savedTeacher);
   } catch (err) {
