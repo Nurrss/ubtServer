@@ -22,17 +22,18 @@ const createQuestionWithOptions = async (req, res) => {
       if (option.isCorrect) correctOptionsIds.push(option._id);
     }
 
-    if (type === "twoPoints" && correctOptionsIds.length !== 2) {
-      throw new Error(
-        "Two correct options are required for 'twoPoints' type questions"
-      );
-    } else if (type === "onePoint" && correctOptionsIds.length !== 1) {
+    // if (type === "twoPoints" && correctOptionsIds.length !== 2) {
+    //   throw new Error(
+    //     "Two correct options are required for 'twoPoints' type questions"
+    //   );
+    // }
+    if (type === "onePoint" && correctOptionsIds.length !== 1) {
       throw new Error(
         "One correct option is required for 'onePoint' type questions"
       );
     }
 
-    if (type === "twoPoints" && correctOptionsIds.length == 2) {
+    if (type === "twoPoints") {
       ball = 2;
     } else if (type === "onePoint" && correctOptionsIds.length == 1) {
       ball = 1;
