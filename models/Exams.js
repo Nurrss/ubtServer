@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const Topics = require("./Topics");
+const bcrypt = require("bcrypt");
 
 const ExamsSchema = new Schema({
   subjects: [
@@ -23,6 +24,7 @@ const ExamsSchema = new Schema({
   finishedAt: { type: Date, required: true },
   examType: { type: String, enum: ["last", "random"], default: "random" },
   amountOfPassed: { type: Number, default: 0 },
+  password: { type: String, required: true },
 });
 
 ExamsSchema.pre(
@@ -39,5 +41,23 @@ ExamsSchema.pre(
     }
   }
 );
+
+ExamsSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+ExamsSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = mongoose.model("Exams", ExamsSchema);

@@ -209,4 +209,28 @@ router.route("/:id").put(async (req, res) => {
   }
 });
 
+router.post("/:id/access", async (req, res) => {
+  try {
+    const exam = await Exams.findById(req.params.id);
+
+    if (!exam) {
+      return res.status(404).json({ message: "Экзамен не найден" });
+    }
+
+    const { password } = req.body;
+
+    // Проверяем пароль
+    const isMatch = await exam.comparePassword(password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Неверный пароль" });
+    }
+
+    // Если пароль правильный, даём доступ к экзамену
+    res.status(200).json({ message: "Доступ разрешён" });
+  } catch (err) {
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
 module.exports = router;

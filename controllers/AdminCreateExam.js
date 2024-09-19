@@ -11,6 +11,10 @@ const shuffleArray = (arr) => {
   return arr;
 };
 
+const generateRandomPassword = () => {
+  return Math.random().toString(36).slice(-8); // Генерирует случайный 8-значный пароль
+};
+
 const getRandomElements = (arr, count) => {
   if (arr.length <= count) {
     return arr;
@@ -156,11 +160,15 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
         .json({ message: "No subjects with questions found" });
     }
 
+    // Генерация пароля для экзамена
+    const examPassword = generateRandomPassword();
+
     const newExam = new Exams({
       subjects: filteredSubjectsWithQuestions,
       startedAt: new Date(started_at),
       finishedAt: new Date(finished_at),
       examType: examType,
+      password: examPassword, // Добавляем пароль к экзамену
     });
 
     await newExam.save();
@@ -168,6 +176,7 @@ const adminCreatesExamWithAllSubjects = async (req, res) => {
     res.status(201).json({
       message: "Exam with all subjects created successfully",
       exam: newExam,
+      password: examPassword, // Возвращаем пароль в ответе
     });
   } catch (error) {
     console.error(error); // Log the error for debugging
