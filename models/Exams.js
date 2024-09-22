@@ -43,7 +43,7 @@ ExamsSchema.pre(
 );
 
 ExamsSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return (await this.password) == enteredPassword;
 };
 
 ExamsSchema.pre("save", async function (next) {
@@ -52,8 +52,7 @@ ExamsSchema.pre("save", async function (next) {
   }
 
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await this.password;
     next();
   } catch (err) {
     next(err);
