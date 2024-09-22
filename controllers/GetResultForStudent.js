@@ -126,8 +126,8 @@ const getResultForStudent = async (req, res) => {
             correctOptions.includes(opt)
           ).length;
 
+          // Case: Two points question with 1 correct option
           if (correctOptions.length === 1) {
-            // Case: Two points question with 1 correct option
             if (selectedOptions.length === 1 && correctCount === 1) {
               questionPoints = 2; // Full points
             } else if (selectedOptions.length === 2 && correctCount === 1) {
@@ -135,20 +135,21 @@ const getResultForStudent = async (req, res) => {
             } else {
               questionPoints = 0; // No points
             }
-          } else if (correctOptions.length === 2) {
-            // Case: Two points question with 2 correct options
+          }
+          // Case: Two points question with 2 correct options
+          else if (correctOptions.length === 2) {
             if (selectedOptions.length === 2 && correctCount === 2) {
               questionPoints = 2; // Full points
-            } else if (
-              (selectedOptions.length === 2 && correctCount === 1) ||
-              (selectedOptions.length === 3 && correctCount === 2)
-            ) {
+            } else if (selectedOptions.length === 2 && correctCount === 1) {
+              questionPoints = 1; // Partial points
+            } else if (selectedOptions.length === 3 && correctCount === 2) {
               questionPoints = 1; // Partial points
             } else {
               questionPoints = 0; // No points
             }
-          } else if (correctOptions.length === 3) {
-            // Case: Two points question with 3 correct options
+          }
+          // Case: Two points question with 3 correct options
+          else if (correctOptions.length === 3) {
             if (selectedOptions.length === 3 && correctCount === 3) {
               questionPoints = 3; // Full points
             } else if (selectedOptions.length === 3 && correctCount === 2) {
